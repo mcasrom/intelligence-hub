@@ -13,7 +13,8 @@ def _ensure_dirs():
 
 def generate_briefing(articles, clusters, sync_events, frequencies, trends, date_str=None,
                       sources=None, llm_model=None, wordclouds=None,
-                      breaking=None, entities=None, site_domain=None):
+                      breaking=None, entities=None, site_domain=None,
+                      feed_status=None):
     _ensure_dirs()
     if not date_str:
         date_str = datetime.now(timezone.utc).strftime("%y%m%d")
@@ -51,6 +52,7 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
         wordclouds=wordclouds or {},
         breaking=breaking or [],
         entities=entities or {},
+        feed_status=feed_status or [],
         site_domain=site_domain or "viajeinteligencia.com",
         archive=archive,
         total_articles=len(articles),

@@ -201,6 +201,17 @@
         }
         .entity-card .tag .count { color: #546e7a; }
 
+        /* ── FEED STATUS ── */
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; margin-top: 12px; }
+        .status-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; background: #111827; }
+        .status-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .status-item .dot.ok { background: #69f0ae; }
+        .status-item .dot.err { background: #ff5252; }
+        .status-item .dot.cache { background: #4fc3f7; }
+        .status-item .name { color: #b0bec5; }
+        .status-item .count { color: #455a64; margin-left: auto; font-size: 0.85em; }
+        .status-item .error { color: #ff5252; font-size: 0.8em; margin-left: 8px; }
+
         /* ── TIMELINE ── */
         .timeline { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
         .timeline-day {
@@ -280,6 +291,7 @@
     {% if trends %}<a href="#trending">🔥 Trending</a>{% endif %}
     <a href="#archivo">🗂 Archivo</a>
     <a href="#fuentes">📡 Fuentes</a>
+    <a href="#status">💚 Estado</a>
     <a href="#metodologia">⚙️ Metodología</a>
     <a href="#about">ℹ️ About</a>
 </nav>
@@ -499,6 +511,24 @@
         {% endfor %}
     </div>
     {% endfor %}
+</div>
+{% endif %}
+
+{% if feed_status %}
+<div class="section" id="status">
+    <div class="section-title">💚 Estado de fuentes <span class="badge">{{ feed_status|selectattr('ok')|list|length }}/{{ feed_status|length }} OK</span></div>
+    <div class="status-grid">
+    {% for s in feed_status %}
+        <div class="status-item">
+            {% if s.cached %}<span class="dot cache" title="cache"></span>
+            {% elif s.ok %}<span class="dot ok" title="ok"></span>
+            {% else %}<span class="dot err" title="error"></span>{% endif %}
+            <span class="name">{{ s.name }}</span>
+            {% if s.ok %}<span class="count">{{ s.articles }} arts</span>{% endif %}
+            {% if s.error %}<span class="error">⚠ {{ s.error }}</span>{% endif %}
+        </div>
+    {% endfor %}
+    </div>
 </div>
 {% endif %}
 

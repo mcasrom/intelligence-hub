@@ -49,9 +49,11 @@ def main(fast=False):
     print("=" * 60)
     articles = scrape_all(config["sources"], rate_limiter, feed_cache,
                           max_feeds=3 if fast else None)
-    print(f"\n[*] Total artículos recolectados: {len(articles)}")
+    all_articles = articles[0] if isinstance(articles, tuple) else articles
+    feed_status = articles[1] if isinstance(articles, tuple) else []
+    print(f"\n[*] Total artículos recolectados: {len(all_articles)}")
 
-    if not articles:
+    if not all_articles:
         print("[!] No hay artículos, abortando")
         return
 
@@ -59,7 +61,7 @@ def main(fast=False):
     print("\n" + "=" * 60)
     print("FASE 2: Almacenando en BD")
     print("=" * 60)
-    saved = save_articles(articles)
+    saved = save_articles(all_articles)
     print(f"[*] Artículos nuevos guardados: {saved}")
 
     db_articles = get_articles_window(config.get("clustering", {}).get("window_days", 7))
@@ -67,7 +69,8 @@ def main(fast=False):
 
     if len(db_articles) < 2:
         print("[!] Muy pocos artículos para analizar")
-        generate_briefing(db_articles, [], [], {}, {}, date_str, sources=config["sources"])
+        generate_briefing(db_articles, [], [], {}, {}, date_str, sources=config["sources"],
+                          feed_status=feed_status)
         generate_json_data(db_articles, [], [], {}, {}, date_str)
         deploy(mode, config.get("deploy", {}))
         return
@@ -161,7 +164,10 @@ def main(fast=False):
     llm_cfg = config.get("llm", {}).get("test" if mode == "test" else "production", {})
     llm_model = llm_cfg.get("ollama_model") or llm_cfg.get("groq_model")
     generate_briefing(db_articles, enriched_clusters, sync_events, frequencies, trends,
-                      date_str, sources=config["sources"], llm_model=llm_model)
+                      date_str, sources=config["sources"], llm_model=llm_model,
+                      wordclouds=wcs, breaking=brk, entities=ent,
+                      feed_status=feed_status,
+                      site_domain=config.get("deploy", {}).get("site_domain"))
     generate_clusters_page(enriched_clusters, date_str)
     generate_json_data(db_articles, enriched_clusters, sync_events, frequencies, trends, date_str)
 
