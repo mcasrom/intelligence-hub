@@ -1,0 +1,116 @@
+# daily_news - Configuración
+# API keys vía variables de entorno (GROQ_API_KEY, GEMINI_API_KEY)
+
+mode: test  # test | production (test usa Ollama local, production usa APIs)
+
+sources:
+  espana:
+    - name: El País
+      url: https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada
+      lang: es
+      type: general
+    - name: El Mundo
+      url: https://e00-elmundo.uecdn.es/elmundo/rss/portada.xml
+      lang: es
+      type: general
+    - name: La Vanguardia
+      url: https://www.lavanguardia.com/rss/home.xml
+      lang: es
+      type: general
+    - name: El Diario Cantabria
+      url: https://eldiariocantabria.publico.es/rss/
+      lang: es
+      type: regional
+
+  estados_unidos:
+    - name: Washington Post
+      url: https://feeds.washingtonpost.com/rss/world
+      lang: en
+      type: general
+    - name: WSJ
+      url: https://feeds.content.dowjones.io/public/rss/RSSWorldNews
+      lang: en
+      type: financial
+
+  francia:
+    - name: Le Monde
+      url: https://www.lemonde.fr/rss/une.xml
+      lang: fr
+      type: general
+    - name: Le Figaro
+      url: https://www.lefigaro.fr/rss/figaro_actualites.xml
+      lang: fr
+      type: general
+
+  reino_unido:
+    - name: BBC News
+      url: https://feeds.bbci.co.uk/news/world/rss.xml
+      lang: en
+      type: general
+    - name: The Guardian
+      url: https://www.theguardian.com/world/rss
+      lang: en
+      type: general
+
+  italia:
+    - name: Corriere della Sera
+      url: https://www.corriere.it/rss/homepage.xml
+      lang: it
+      type: general
+    - name: Il Sole 24 Ore
+      url: https://www.ilsole24ore.com/rss/italia.xml
+      lang: it
+      type: financial
+
+  alemania:
+    - name: Der Spiegel
+      url: https://www.spiegel.de/international/index.rss
+      lang: en
+      type: general
+    - name: Deutsche Welle
+      url: https://rss.dw.com/rdf/rss-en-world
+      lang: en
+      type: general
+
+  brasil:
+    - name: Folha de S.Paulo
+      url: https://feeds.folha.uol.com.br/emcimadahora/rss091.xml
+      lang: pt
+      type: general
+    - name: O Globo
+      url: https://oglobo.globo.com/rss.xml
+      lang: pt
+      type: general
+
+rotation:
+  min_interval: 900  # 15 min entre requests al mismo feed
+  max_retries: 3
+  backoff_base: 2
+  jitter: true
+  cache_ttl: 1800  # 30 min cache
+
+clustering:
+  min_cluster_size: 2
+  min_samples: 1
+  similarity_threshold: 0.75  # cosine similarity para sincronizadas
+  window_days: 7
+
+analytics:
+  word_windows: [3, 5, 7]  # días para tracking de palabras
+  top_n_words: 50
+  stopwords_langs: [es, en, fr, it, pt, de]
+
+llm:
+  production:
+    groq_model: llama3-70b-8192
+    gemini_model: models/embedding-001
+  test:
+    ollama_model: tinyllama
+    ollama_embed: tinyllama
+
+deploy:
+  github_repo: git@github.com:mcasrom/daily_readings.git
+  github_branch: main
+  server_host: viaje
+  server_path: /var/www/daily_readings
+  site_domain: news.viajeinteligencia.com

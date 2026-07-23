@@ -1,0 +1,11 @@
+# daily_news
+venv/
+__pycache__/
+*.pyc
+data/news.db
+data/cache/
+output/
+deploy/
+.env
+.DS_Store
+*.swp
