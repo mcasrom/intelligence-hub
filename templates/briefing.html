@@ -553,6 +553,69 @@
         <h3>🚀 Stack</h3>
         <p>Python 3.12 · SQLite (WAL mode) · scikit-learn · Jinja2 · Groq/Gemini APIs · Deploy: GitHub Pages + rsync</p>
 
+        <div style="margin:24px 0; background:#0d1520; border:1px solid #1a2a4a; border-radius:12px; padding:20px;">
+            <h3 style="color:#00d4ff; margin-top:0; font-size:1.1em;">🔄 Guía del proceso — Cómo funciona</h3>
+            <div style="display:flex; flex-direction:column; gap:4px; margin-top:12px; font-size:0.85em;">
+                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
+                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">1.</span>
+                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">📡 Scraping RSS</span>
+                    <span style="color:#78909c;">16 feeds de 7 países se consultan cada ciclo con rate limiting (15s timeout, backoff 2ⁿ+jitter). Solo titulares + URL.</span>
+                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/scraper.py</code></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
+                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">2.</span>
+                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">💾 Almacenamiento</span>
+                    <span style="color:#78909c;">Cada artículo se guarda en SQLite con fuente, país, idioma y fecha. Deduplicación por URL.</span>
+                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/db.py</code></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
+                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">3.</span>
+                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">🧬 Vectorización</span>
+                    <span style="color:#78909c;">Los titulares se convierten en vectores numéricos de 500 dimensiones mediante TF-IDF (char-ngrams 2-4). Captura similitud multilingüe.</span>
+                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/embeddings.py</code></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
+                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">4.</span>
+                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">🔬 Clustering</span>
+                    <span style="color:#78909c;">HDBSCAN agrupa vectores similares en clusters. Cada cluster = un tema. Los puntos sin grupo se descartan como ruido.</span>
+                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/clusterer.py</code></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
+                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">5.</span>
+                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">🔗 Sincronizadas</span>
+                    <span style="color:#78909c;">Similitud coseno entre todos los pares. Si ≥0.75, son la misma noticia en distintas fuentes. Se marcan editoriales por patrón.</span>
+                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/sync_detector.py</code></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
+                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">6.</span>
+                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">📊 Analítica</span>
+                    <span style="color:#78909c;">Extracción de keywords por idioma (stopwords multilingüe). Ventanas 3/5/7 días. Trending: ratio entre ventanas para detectar ascensos.</span>
+                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/analytics.py</code></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
+                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">7.</span>
+                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">☁️ Wordclouds + NER</span>
+                    <span style="color:#78909c;">Nubes de palabras por idioma/ventana. Entidades extraídas (personas, organizaciones, lugares). Breaking news (crecimiento súbito).</span>
+                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/*.py</code></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
+                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">8.</span>
+                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">🌐 HTML + JSON</span>
+                    <span style="color:#78909c;">Jinja2 renderiza el dashboard con 9 secciones interactivas. JSON data para consumo externo. Wordclouds en PNG.</span>
+                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/generator.py</code></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px; border-left:3px solid #00d4ff;">
+                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">9.</span>
+                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">🚀 Deploy</span>
+                    <span style="color:#78909b;">rsync al server heznert + git push a GitHub Pages. Nginx sirve estático. Systemd mantiene el contador de visitas.</span>
+                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>deploy/*</code></span>
+                </div>
+            </div>
+            <div style="margin-top:12px; padding:10px; background:#0a0e17; border-radius:6px; text-align:center; color:#607d8b; font-size:0.8em;">
+                ⏱ Tiempo total del pipeline: ~2-5 min (scraping 16 feeds + clustering + generación)
+            </div>
+        </div>
+
         <h3>⚠️ Limitaciones y advertencias</h3>
         <p><strong>Alcance del scraping:</strong> Este sistema recolecta <strong>únicamente titulares y enlaces</strong> de fuentes RSS públicas. No extrae el cuerpo completo de los artículos, no vulnera paywalls, ni accede a contenido restringido. Cada feed se consulta con rate limiting (mínimo 15 min entre requests) y <code>User-Agent</code> identificativo, respetando los términos de servicio de cada fuente.</p>
         <p><strong>Derechos de autor:</strong> Los titulares y enlaces pertenecen a sus respectivos medios. Este proyecto no almacena ni reproduce contenido protegido más allá del título y la URL, operando bajo el principio de <em>fair use / cita</em> con fines de agregación y análisis.</p>
@@ -567,6 +630,9 @@
     <div class="about-section">
         <p><span class="highlight">Intelligence Hub</span> es un sistema de agregación y análisis de noticias geopolíticas. Recolecta titulares de medios de comunicación de 7 países, detecta patrones y relaciones entre fuentes, y genera briefings automáticos diarios.</p>
         <p>El proyecto surgió como una evolución de <span class="highlight">daily_readings</span> (originalmente en Raspberry Pi vía org-mode + GitHub Pages), migrado a un stack Python moderno con capacidad de clustering y análisis semántico.</p>
+        <p style="margin-top:8px; border-left: 3px solid #ff5252; padding-left: 12px; font-size: 0.85em; color: #78909c;">
+            <strong>Aviso legal:</strong> Este sitio opera bajo el derecho de cita (art. 32 LPI). No almacena ni reproduce contenido protegido más allá de titulares y enlaces. No tiene fines comerciales. Las marcas, logotipos y contenidos enlazados pertenecen a sus respectivos propietarios.
+        </p>
         <p style="margin-top:12px;"><strong>Tecnologías:</strong></p>
         <div class="tech-list">
             <span class="tech-tag">Python 3.12</span>
