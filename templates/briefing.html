@@ -201,7 +201,43 @@
         }
         .entity-card .tag .count { color: #546e7a; }
 
-        /* ── FEED STATUS ── */
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none; position: fixed; z-index: 999; inset: 0;
+            background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #0d1520; border: 1px solid #1a2a4a; border-radius: 14px;
+            max-width: 720px; width: 100%; max-height: 85vh; overflow-y: auto;
+            padding: 24px; position: relative;
+        }
+        .modal-content .close {
+            position: absolute; top: 12px; right: 16px; color: #455a64;
+            cursor: pointer; font-size: 1.5em; line-height: 1;
+        }
+        .modal-content .close:hover { color: #ff5252; }
+        .modal-content h2 { color: #00d4ff; font-size: 1.3em; margin-bottom: 16px; }
+        .modal-step {
+            display: flex; gap: 14px; padding: 10px 12px;
+            border-bottom: 1px solid #1a2a4a; align-items: flex-start;
+        }
+        .modal-step:last-child { border-bottom: none; }
+        .modal-step .num {
+            color: #ffd54f; font-weight: 700; font-size: 1.1em;
+            min-width: 28px; margin-top: 2px;
+        }
+        .modal-step .desc { flex: 1; }
+        .modal-step .desc strong { color: #4fc3f7; display: block; font-size: 0.9em; }
+        .modal-step .desc p { color: #78909c; font-size: 0.82em; margin: 2px 0 0; line-height: 1.5; }
+        .modal-step .code { color: #455a64; font-size: 0.7em; white-space: nowrap; }
+        .btn-modal {
+            background: transparent; border: 1px solid #1a2a4a; color: #4fc3f7;
+            cursor: pointer; padding: 8px 18px; border-radius: 8px; font-size: 0.85em;
+            transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-modal:hover { border-color: #00d4ff; background: rgba(0,212,255,0.05); }
         .status-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; margin-top: 12px; }
         .status-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; background: #111827; }
         .status-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -583,66 +619,65 @@
         <h3>🚀 Stack</h3>
         <p>Python 3.12 · SQLite (WAL mode) · scikit-learn · Jinja2 · Groq/Gemini APIs · Deploy: GitHub Pages + rsync</p>
 
-        <div style="margin:24px 0; background:#0d1520; border:1px solid #1a2a4a; border-radius:12px; padding:20px;">
-            <h3 style="color:#00d4ff; margin-top:0; font-size:1.1em;">🔄 Guía del proceso — Cómo funciona</h3>
-            <div style="display:flex; flex-direction:column; gap:4px; margin-top:12px; font-size:0.85em;">
-                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
-                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">1.</span>
-                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">📡 Scraping RSS</span>
-                    <span style="color:#78909c;">16 feeds de 7 países se consultan cada ciclo con rate limiting (15s timeout, backoff 2ⁿ+jitter). Solo titulares + URL.</span>
-                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/scraper.py</code></span>
+        <button class="btn-modal" onclick="document.getElementById('funnelModal').classList.add('active')">
+            🔄 Ver proceso completo (9 pasos)
+        </button>
+
+        <!-- Funnel Modal -->
+        <div class="modal-overlay" id="funnelModal" onclick="if(event.target===this)this.classList.remove('active')">
+            <div class="modal-content">
+                <span class="close" onclick="document.getElementById('funnelModal').classList.remove('active')">&times;</span>
+                <h2>🔄 Proceso completo — Intelligence Hub</h2>
+
+                <div class="modal-step">
+                    <span class="num">1</span>
+                    <div class="desc"><strong>📡 Scraping RSS</strong><p>16 feeds de 7 países se consultan con rate limiting. Timeout 15s, backoff 2ⁿ con jitter. Solo titulares + enlaces.</p></div>
+                    <span class="code">scraper.py</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
-                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">2.</span>
-                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">💾 Almacenamiento</span>
-                    <span style="color:#78909c;">Cada artículo se guarda en SQLite con fuente, país, idioma y fecha. Deduplicación por URL.</span>
-                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/db.py</code></span>
+                <div class="modal-step">
+                    <span class="num">2</span>
+                    <div class="desc"><strong>💾 Almacenamiento</strong><p>Cada artículo se guarda en SQLite con fuente, país, idioma y fecha. Deduplicación por URL.</p></div>
+                    <span class="code">db.py</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
-                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">3.</span>
-                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">🧬 Vectorización</span>
-                    <span style="color:#78909c;">Los titulares se convierten en vectores numéricos de 500 dimensiones mediante TF-IDF (char-ngrams 2-4). Captura similitud multilingüe.</span>
-                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/embeddings.py</code></span>
+                <div class="modal-step">
+                    <span class="num">3</span>
+                    <div class="desc"><strong>🧬 Vectorización</strong><p>Los titulares se convierten en vectores de 500d mediante TF-IDF (char-ngrams 2-4). Captura similitud multilingüe.</p></div>
+                    <span class="code">embeddings.py</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
-                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">4.</span>
-                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">🔬 Clustering</span>
-                    <span style="color:#78909c;">HDBSCAN agrupa vectores similares en clusters. Cada cluster = un tema. Los puntos sin grupo se descartan como ruido.</span>
-                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/clusterer.py</code></span>
+                <div class="modal-step">
+                    <span class="num">4</span>
+                    <div class="desc"><strong>🔬 Clustering</strong><p>HDBSCAN agrupa vectores similares. Cada cluster es un tema. Los puntos sin grupo son ruido.</p></div>
+                    <span class="code">clusterer.py</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
-                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">5.</span>
-                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">🔗 Sincronizadas</span>
-                    <span style="color:#78909c;">Similitud coseno entre todos los pares. Si ≥0.75, son la misma noticia en distintas fuentes. Se marcan editoriales por patrón.</span>
-                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/sync_detector.py</code></span>
+                <div class="modal-step">
+                    <span class="num">5</span>
+                    <div class="desc"><strong>🔗 Sincronizadas</strong><p>Similitud coseno entre todos los pares. Si ≥0.75, misma noticia en distintas fuentes. Editoriales por patrón.</p></div>
+                    <span class="code">sync_detector.py</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
-                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">6.</span>
-                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">📊 Analítica</span>
-                    <span style="color:#78909c;">Extracción de keywords por idioma (stopwords multilingüe). Ventanas 3/5/7 días. Trending: ratio entre ventanas para detectar ascensos.</span>
-                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/analytics.py</code></span>
+                <div class="modal-step">
+                    <span class="num">6</span>
+                    <div class="desc"><strong>📊 Analítica</strong><p>Keywords por idioma (stopwords multilingüe). Ventanas 3/5/7 días. Trending ratio entre ventanas.</p></div>
+                    <span class="code">analytics.py</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
-                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">7.</span>
-                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">☁️ Wordclouds + NER</span>
-                    <span style="color:#78909c;">Nubes de palabras por idioma/ventana. Entidades extraídas (personas, organizaciones, lugares). Breaking news (crecimiento súbito).</span>
-                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/*.py</code></span>
+                <div class="modal-step">
+                    <span class="num">7</span>
+                    <div class="desc"><strong>☁️ Wordclouds + NER</strong><p>Nubes de palabras por idioma/ventana. Entidades (personas, orgs, lugares). Breaking news (crecimiento súbito).</p></div>
+                    <span class="code">wordcloud_gen.py<br>advanced_analysis.py</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px;">
-                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">8.</span>
-                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">🌐 HTML + JSON</span>
-                    <span style="color:#78909c;">Jinja2 renderiza el dashboard con 9 secciones interactivas. JSON data para consumo externo. Wordclouds en PNG.</span>
-                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>src/generator.py</code></span>
+                <div class="modal-step">
+                    <span class="num">8</span>
+                    <div class="desc"><strong>🌐 Generación HTML</strong><p>Jinja2 renderiza el dashboard con 9 secciones + JSON data. Incluye OG tags para RRSS.</p></div>
+                    <span class="code">generator.py</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; background:#111827; border-radius:6px; border-left:3px solid #00d4ff;">
-                    <span style="color:#ffd54f; font-weight:bold; min-width:28px;">9.</span>
-                    <span style="color:#4fc3f7; font-weight:600; min-width:130px;">🚀 Deploy</span>
-                    <span style="color:#78909b;">rsync al server heznert + git push a GitHub Pages. Nginx sirve estático. Systemd mantiene el contador de visitas.</span>
-                    <span style="color:#455a64; font-size:0.75em; margin-left:auto;"><code>deploy/*</code></span>
+                <div class="modal-step" style="border-left:3px solid #00d4ff;">
+                    <span class="num">9</span>
+                    <div class="desc"><strong>🚀 Deploy</strong><p>rsync al server heznert + git push a GitHub. Nginx + systemd para el contador SSL con Let's Encrypt.</p></div>
+                    <span class="code">deploy/</span>
                 </div>
-            </div>
-            <div style="margin-top:12px; padding:10px; background:#0a0e17; border-radius:6px; text-align:center; color:#607d8b; font-size:0.8em;">
-                ⏱ Tiempo total del pipeline: ~2-5 min (scraping 16 feeds + clustering + generación)
+
+                <div style="margin-top:14px; padding:10px; background:#0a0e17; border-radius:6px; text-align:center; color:#607d8b; font-size:0.8em;">
+                    ⏱ Tiempo total del pipeline: ~2-5 min &nbsp;|&nbsp; 🎯 16 fuentes · 7 países · 5 idiomas
+                </div>
             </div>
         </div>
 
