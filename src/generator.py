@@ -106,3 +106,28 @@ def generate_json_data(articles, clusters, sync_events, frequencies, trends, dat
     import json
     output_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"  [OK] JSON data: {output_path}")
+
+
+def ensure_pwa_files():
+    _ensure_dirs()
+    manifest = OUTPUT_DIR / "manifest.json"
+    if not manifest.exists():
+        manifest.write_text(json.dumps({
+            "name": "Intelligence Hub",
+            "short_name": "IntelHub",
+            "description": "Análisis geopolítico automatizado",
+            "start_url": "/", "display": "standalone",
+            "background_color": "#0a0e17", "theme_color": "#0a0e17",
+            "icons": [
+                {"src": "/favicon-48.png", "sizes": "48x48", "type": "image/png"},
+                {"src": "/favicon.png", "sizes": "32x32", "type": "image/png"},
+                {"src": "/preview-icon.png", "sizes": "192x192", "type": "image/png"},
+            ]
+        }, indent=2), encoding="utf-8")
+    sw = OUTPUT_DIR / "sw.js"
+    if not sw.exists():
+        sw.write_text("""const C='intelhub-v1';const U=['/','/index.html','/manifest.json','/favicon.png'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(U)));self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim();});
+self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>new Response('Offline',{status:503}))));});
+""")
