@@ -99,7 +99,13 @@
         .source-name {
             color: #78909c; font-size: 0.85em; text-transform: uppercase;
             letter-spacing: 1.2px; margin-bottom: 5px;
+            display: flex; align-items: center; gap: 6px; cursor: pointer;
         }
+        .source-name .star { color: #2a3a5a; font-size: 1.1em; transition: color 0.2s; user-select: none; }
+        .source-name .star.fav { color: #ffd54f; }
+        .source-name:hover .star { color: #4a5a7a; }
+        .source-name:hover .star.fav { color: #ffd54f; }
+        .source-block.fav-source .article { border-left-color: #2a4a3a; }
         .article {
             padding: 5px 0 5px 16px; border-left: 2px solid #1a2a4a;
             margin: 4px 0; transition: border-color 0.15s;
@@ -284,6 +290,7 @@
         <div class="stat-card"><div class="num">{{ total_clusters }}</div><div class="label">Clústeres</div></div>
         <div class="stat-card"><div class="num">{{ sync_events|length }}</div><div class="label">Sincronizadas</div></div>
         <div class="stat-card"><div class="num">{{ by_country|length }}</div><div class="label">Países</div></div>
+        <div class="stat-card" id="visit-stat"><div class="num" id="visit-count">···</div><div class="label">Visitas totales</div></div>
     </div>
 </div>
 
@@ -430,7 +437,9 @@
         </div>
         {% for source, articles in sources.items() %}
         <div class="source-block">
-            <div class="source-name">{{ source }}</div>
+            <div class="source-name" onclick="toggleFav(this)" data-source="{{ source }}">
+                <span class="star">☆</span> {{ source }}
+            </div>
             {% for a in articles %}
             <div class="article">
                 <a href="{{ a.url }}" target="_blank">{{ a.title }}</a>
@@ -588,7 +597,7 @@
 </div>
 
 <script>
-// Smooth scroll para navegación
+// Smooth scroll
 document.querySelectorAll('.nav-bar a').forEach(a => {
     a.addEventListener('click', e => {
         e.preventDefault();
@@ -596,6 +605,63 @@ document.querySelectorAll('.nav-bar a').forEach(a => {
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 });
+
+// Favoritos (localStorage)
+const FAV_KEY = 'ihub_favs';
+function getFavs() {
+    try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; } catch { return []; }
+}
+function setFavs(f) { localStorage.setItem(FAV_KEY, JSON.stringify(f)); }
+
+function toggleFav(el) {
+    const name = el.dataset.source;
+    const star = el.querySelector('.star');
+    let favs = getFavs();
+    if (favs.includes(name)) {
+        favs = favs.filter(f => f !== name);
+        star.classList.remove('fav');
+        star.textContent = '☆';
+    } else {
+        favs.push(name);
+        star.classList.add('fav');
+        star.textContent = '★';
+    }
+    setFavs(favs);
+    reorderSources();
+}
+
+function reorderSources() {
+    const favs = getFavs();
+    document.querySelectorAll('.source-block').forEach(b => {
+        const name = b.querySelector('.source-name')?.dataset.source;
+        if (favs.includes(name)) {
+            b.classList.add('fav-source');
+            b.parentNode.prepend(b);
+        } else {
+            b.classList.remove('fav-source');
+        }
+    });
+}
+
+function initFavs() {
+    const favs = getFavs();
+    document.querySelectorAll('.source-name').forEach(el => {
+        const star = el.querySelector('.star');
+        if (favs.includes(el.dataset.source)) {
+            star.classList.add('fav');
+            star.textContent = '★';
+        }
+    });
+    reorderSources();
+}
+document.addEventListener('DOMContentLoaded', initFavs);
+
+// Contador de visitas
+const COUNTER_URL = 'https://{{ site_domain }}/api/count';
+fetch(COUNTER_URL + '?visit=1', { mode: 'cors' })
+    .then(r => r.json())
+    .then(d => { document.getElementById('visit-count').textContent = d.count; })
+    .catch(() => { document.getElementById('visit-count').textContent = '---'; });
 </script>
 
 </body>
