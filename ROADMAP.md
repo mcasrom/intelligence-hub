@@ -1,114 +1,129 @@
-# daily_news — Roadmap
+# Intelligence Hub — Roadmap
 
 ## Filosofía
 
 > Laptop solo para test/desarrollo. Producción corre en heznert vía APIs externas (Groq + Gemini). Sin GPU necesaria.
 
-## Fases
+## ✅ Completado
 
-### FASE 0 — Fundación (ahora)
+### FASE 0 — Fundación
 - [x] Evaluar recursos: laptop (15GB/12c), heznert (4GB/2c/38GB), Pi (descartado)
-- [x] Definir arquitectura híbrida: scraping ligero + APIs cloud + static deploy
-- [ ] `config.yml` con 17 fuentes RSS de 7 países
-- [ ] `src/db.py` — SQLite schema (articles, clusters, sync_events, word_frequencies)
-- [ ] `src/rotation.py` — Rate limiting + cache con backoff exponencial
-- [ ] `src/scraper.py` — RSS collector con feedparser
-- [ ] `src/embeddings.py` — Gemini API (production) / Ollama (test)
-- [ ] `src/clusterer.py` — HDBSCAN clustering sobre embeddings
-- [ ] `src/sync_detector.py` — Detectar misma noticia multi-fuente por similitud coseno
-- [ ] `src/analytics.py` — Word tracking 3/5/7 días + TF-IDF keywords
-- [ ] `src/llm.py` — Groq (production) / Ollama (test) para etiquetar clusters
-- [ ] `src/generator.py` — Jinja2 → HTML estático + JSON data
-- [ ] `src/deploy.py` — Git push a GitHub Pages + rsync a heznert
-- [ ] `main.py` — Orquestador completo
-- [ ] Test end-to-end en laptop (modo test con Ollama)
+- [x] Arquitectura híbrida: scraping + APIs cloud + static deploy
+- [x] `config.yml` con 16 fuentes RSS de 7 países
+- [x] `src/db.py` — SQLite schema (articles, clusters, sync_events, word_frequencies)
+- [x] `src/rotation.py` — Rate limiting + cache con backoff exponencial
+- [x] `src/scraper.py` — RSS collector con feedparser (15s timeout, max_feeds opcional)
+- [x] `src/embeddings.py` — Gemini API (production) / TF-IDF (test)
+- [x] `src/clusterer.py` — HDBSCAN clustering sobre embeddings + similitud coseno
+- [x] `src/sync_detector.py` — Detectar misma noticia multi-fuente + editoriales
+- [x] `src/analytics.py` — Word tracking 3/5/7 días + trending ratio
+- [x] `src/generator.py` — Jinja2 → HTML estático + JSON
+- [x] `src/deploy.py` — Git push a GitHub Pages + rsync a heznert
+- [x] `main.py` — Orquestador completo (--fast para test rápido)
+- [x] `src/self_test.py` — Auto-diagnóstico (10 tests)
+- [x] Test end-to-end: 153 artículos, 27 clusters, 1 sincronizada, wordclouds
 
 ### FASE 1 — Core scraping & almacenamiento
-- [ ] Scraper corriendo en heznert via cron (cada 6h)
-- [ ] SQLite poblándose con artículos de todas las fuentes
-- [ ] Rate limiting respetando TTL de cada feed
-- [ ] Cache de respuestas para no repetir requests
+- [x] Scraper funcional (16 feeds, 15s timeout, rate limiting)
+- [x] SQLite con 153+ artículos en ventana
+- [x] Cache de respuestas (TTL 30 min)
 
-### FASE 2 — Clustering & detección de sincronizadas
-- [ ] Embeddings de titulares vía Gemini API (production)
-- [ ] HDBSCAN clustering sobre ventana de 7 días
-- [ ] Detección de noticias sincronizadas (misma historia en ≥2 fuentes)
-- [ ] Etiquetado de clusters vía Groq API
-- [ ] Alertas de breaking news (pico repentino en un clúster)
+### FASE 2 — Clustering & sincronizadas
+- [x] Embeddings TF-IDF (500d, char-wb ngrams 2-4)
+- [x] HDBSCAN clustering (min_cluster_size=2)
+- [x] Detección de noticias sincronizadas (cosine > 0.75)
+- [x] Etiquetado de clusters vía LLM
+- [x] Breaking news (≥3 artículos recientes, ≥2 fuentes)
 
 ### FASE 3 — Analítica de palabras
-- [ ] Extracción de keywords por artículo
-- [ ] Ventanas de 3/5/7 días con top-N palabras
-- [ ] Trending topics: palabras que suben/bajan respecto a días anteriores
-- [ ] Word clouds generados automáticamente
+- [x] Extracción de keywords (stopwords multilingüe ES/EN/FR/IT/PT/DE)
+- [x] Ventanas de 3/5/7 días
+- [x] Trending topics (ratio entre ventanas)
+- [x] Word clouds (15 imágenes: 5 idiomas × 3 ventanas)
 
-### FASE 4 — Generación HTML & deploy
-- [ ] Template Jinja2 para daily briefing (como el actual)
-- [ ] Página de clústeres con artículos agrupados
-- [ ] Página de palabras trending (3/5/7 días)
-- [ ] Página de sincronizadas con mapa de fuentes
-- [ ] Deploy automático a GitHub Pages
-- [ ] rsync a heznert para servirlos desde nginx
+### FASE 4 — HTML & deploy
+- [x] Dashboard completo: titulares, clusters, sincronizadas, palabras, trending
+- [x] Nubes de palabras, entidades NER, breaking news, timeline por cluster
+- [x] Favoritos por fuente (localStorage, persiste entre visitas)
+- [x] Contador de visitas (servicio ligero en heznert)
+- [x] Archivo de 7 días con rotación automática
+- [x] Tabs: Fuentes, Metodología (con caveat legal), About
+- [x] OG preview + Twitter Cards + favicon
+- [x] Tipografía Inter, responsive, dark theme
+- [x] `deploy/nginx.conf` — Server block SSL-ready
+- [x] `deploy/deploy-to-server.sh` — Deploy automático
+- [x] `src/counter_server.py` — Microservicio contador
+- [x] Repo GitHub: `github.com/mcasrom/intelligence-hub`
 
-### FASE 5 — Editoriales sincronizados
-- [ ] Detectar editoriales por patrones de texto ("editorial", "opinión", "Thréard", etc.)
-- [ ] Comparar ángulos editoriales sobre un mismo tema
-- [ ] Visualización de líneas editoriales por país/medio
+## 📋 Próximo (FASE 5+)
 
-### FASE 6 — Producción
-- [ ] Migrar scraping + generación a heznert
-- [ ] Groq + Gemini como backend de IA (sin Ollama en prod)
-- [ ] Cron estable con logging y alertas de fallo
-- [ ] GitHub Actions como fallback de build
+### Pendientes priorizados
+- [ ] **Cron en heznert** — Pipeline automático cada 6h (scraping + clustering + gen)
+- [ ] **DNS + SSL** — `news.viajeinteligencia.com` con Let's Encrypt
+- [ ] **Groq + Gemini** — Claves en producción para embeddings y LLM reales
+- [ ] **Cross-language sync** — Detectar misma noticia entre idiomas distintos
+- [ ] **Sentiment analysis** — Tono por fuente/país
+- [ ] **Evolución temporal** — Timeline gráfico de clusters día a día
+- [ ] **Notificaciones Telegram** — Alertas de breaking news
 
-### FASE 7 — Mejoras continuas
-- [ ] Detección de narrativas (palabras que evolucionan 7+ días)
-- [ ] API REST ligera en heznert para servir datos JSON
-- [ ] Panel de control web con gráficos
-- [ ] Notificaciones Telegram de clústeres importantes
+### Ideas para futuro
+- [ ] Mapa geopolítico con noticias plotadas
+- [ ] PWA (instalable como app)
+- [ ] Buscador sobre histórico SQLite
+- [ ] Exportar PDF del briefing
+- [ ] GitHub Actions CI/CD
+- [ ] Panel de control histórico (último mes)
+- [ ] API REST en heznert para `data.json`
 - [ ] Integración GDELT (como en verificacion_news)
 
-## Estructura final
+## Estructura actual
 
 ```
 ~/daily_news/
-├── config.yml              # Fuentes, APIs, thresholds
-├── main.py                 # Orquestador
-├── requirements.txt        # Dependencias
-├── ROADMAP.md              # Este archivo
+├── config.yml                 # Fuentes, APIs, thresholds, deploy
+├── main.py                    # Orquestador
+├── requirements.txt           # Dependencias
+├── ROADMAP.md                 # Este archivo
+├── .env.example               # Template de variables de entorno
+├── .gitignore
 ├── src/
 │   ├── __init__.py
-│   ├── db.py               # SQLite schema + queries
-│   ├── scraper.py          # RSS collector
-│   ├── rotation.py         # Rate limiting + cache
-│   ├── embeddings.py       # Gemini / Ollama embeddings
-│   ├── clusterer.py        # HDBSCAN clustering
-│   ├── sync_detector.py    # Cross-source sync detection
-│   ├── analytics.py        # Word tracking + TF-IDF
-│   ├── llm.py              # Groq / Ollama LLM
-│   ├── generator.py        # Jinja2 → HTML
-│   └── deploy.py           # Git push + rsync
-├── data/
-│   ├── news.db             # SQLite
-│   └── cache/              # Feed cache
-├── output/                 # HTML generado (deploy/)
+│   ├── db.py                  # SQLite schema + queries
+│   ├── scraper.py             # RSS collector (16 feeds)
+│   ├── rotation.py            # Rate limiting + cache
+│   ├── embeddings.py          # Gemini API / TF-IDF
+│   ├── clusterer.py           # HDBSCAN + cosine similarity
+│   ├── sync_detector.py       # Cross-source sync + editoriales
+│   ├── analytics.py           # Word tracking + trending
+│   ├── llm.py                 # Groq / Ollama LLM
+│   ├── advanced_analysis.py   # NER, breaking news, timeline, entidades
+│   ├── wordcloud_gen.py       # WordCloud → PNG
+│   ├── generator.py           # Jinja2 → HTML + JSON
+│   ├── deploy.py              # Git push + rsync (Python)
+│   ├── self_test.py           # Auto-diagnóstico
+│   └── counter_server.py      # Microservicio contador visitas
+├── templates/
+│   ├── briefing.html          # Dashboard principal (460+ líneas)
+│   └── clusters.html          # Página de clusters
+├── deploy/
+│   ├── nginx.conf             # Server block SSL-ready
+│   └── deploy-to-server.sh    # Deploy automático a heznert
+├── data/                      # SQLite (gitignored)
+├── output/                    # HTML generado (gitignored)
 │   ├── index.html
 │   ├── clusters.html
-│   ├── 260723_day_briefing.html
-│   └── data.json
-├── deploy/                 # rsync target
-└── templates/              # Jinja2 templates
-    ├── base.html
-    ├── briefing.html
-    ├── clusters.html
-    └── analytics.html
+│   ├── data.json
+│   ├── images/ (wordclouds)
+│   ├── favicon.png, preview.jpg
+│   └── {YYMMDD}_day_briefing.html
 ```
 
 ## Notas técnicas
 
-- **Embeddings**: Gemini `models/embedding-001` (768d, gratis 1500 req/día). En test: Ollama mxbai-embed-large.
-- **LLM**: Groq `llama3-70b-8192` (30 req/min gratis). En test: Ollama qwen3:4b.
-- **Clustering**: HDBSCAN con `min_cluster_size=2` para capturar pares sincronizados.
+- **Embeddings**: Gemini `models/embedding-001` (768d). En test: TF-IDF 500d char-ngrams.
+- **LLM**: Groq `llama3-70b-8192`. En test: Ollama tinyllama.
+- **Clustering**: HDBSCAN con `min_cluster_size=2`.
+- **Sync detection**: Cosine similarity ≥ 0.75 entre embeddings.
 - **Rate limiting**: 15 min entre requests al mismo feed. Backoff 2^n + jitter.
-- **Cache**: TTL 30 min en RAM para evitar re-fetches.
-- **Deploy**: `git push` a GitHub Pages + `rsync` opcional a heznert.
+- **Counter**: Microservicio Python en `127.0.0.1:9099`, proxy nginx `/api/count`.
+- **Deploy**: `bash deploy/deploy-to-server.sh` → rsync + nginx + systemd.
