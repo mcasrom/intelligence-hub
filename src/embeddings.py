@@ -7,15 +7,12 @@ class EmbeddingsProvider:
     def __init__(self, mode="test"):
         self.mode = mode
         self._tfidf = None
-        if mode == "production":
-            self.api_key = os.environ.get("GEMINI_API_KEY")
-            if not self.api_key:
-                raise ValueError("GEMINI_API_KEY no configurada en entorno")
+        self.api_key = os.environ.get("GEMINI_API_KEY")
 
     def embed(self, texts):
         if isinstance(texts, str):
             texts = [texts]
-        if self.mode == "production":
+        if self.mode == "production" and self.api_key:
             return self._gemini_embed(texts)
         return self._tfidf_embed(texts)
 

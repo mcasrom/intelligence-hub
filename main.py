@@ -165,7 +165,7 @@ def main(fast=False):
     llm_model = llm_cfg.get("ollama_model") or llm_cfg.get("groq_model")
     generate_briefing(db_articles, enriched_clusters, sync_events, frequencies, trends,
                       date_str, sources=config["sources"], llm_model=llm_model,
-                      wordclouds=wcs, breaking=brk, entities=ent,
+                      wordclouds={}, breaking=[], entities={},
                       feed_status=feed_status,
                       site_domain=config.get("deploy", {}).get("site_domain"))
     generate_clusters_page(enriched_clusters, date_str)

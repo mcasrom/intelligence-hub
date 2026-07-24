@@ -1,7 +1,7 @@
 # daily_news - Configuración
 # API keys vía variables de entorno (GROQ_API_KEY, GEMINI_API_KEY)
 
-mode: test  # test | production (test usa Ollama local, production usa APIs)
+mode: production  # test | production (test usa Ollama local, production usa APIs)
 
 sources:
   espana:
