@@ -8,3 +8,7 @@ output/
 .env
 .DS_Store
 *.swp
+*.bak
+cron.log
+run.sh
+check_dates.py

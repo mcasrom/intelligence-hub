@@ -69,6 +69,10 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_sync_topic ON sync_events(topic);
     """)
     conn.commit()
+    try:
+        conn.execute("ALTER TABLE sync_events ADD COLUMN countries TEXT DEFAULT '[]'")
+    except Exception:
+        pass
     conn.close()
 
 
@@ -158,10 +162,26 @@ def get_sync_events(days=7):
         (cutoff,)
     ).fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+    result = []
+    for r in rows:
+        d = dict(r)
+        try:
+            d["sources"] = json.loads(d["sources"])
+        except Exception:
+            pass
+        try:
+            d["article_ids"] = json.loads(d["article_ids"])
+        except Exception:
+            pass
+        try:
+            d["countries"] = json.loads(d["countries"])
+        except Exception:
+            d["countries"] = []
+        result.append(d)
+    return result
 
 
-def save_sync_event(topic, article_ids, sources, is_editorial=0):
+def save_sync_event(topic, article_ids, sources, is_editorial=0, countries=None):
     conn = get_conn()
     existing = conn.execute(
         "SELECT id, count, article_ids FROM sync_events WHERE topic = ?", (topic,)
@@ -176,9 +196,24 @@ def save_sync_event(topic, article_ids, sources, is_editorial=0):
         )
     else:
         conn.execute(
-            "INSERT INTO sync_events (topic, article_ids, sources, first_seen, last_seen, count, is_editorial) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (topic, json.dumps(article_ids), json.dumps(sources), now, now, len(article_ids), is_editorial)
+            "INSERT INTO sync_events (topic, article_ids, sources, countries, first_seen, last_seen, count, is_editorial) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (topic, json.dumps(article_ids), json.dumps(sources), json.dumps(countries or []), now, now, len(article_ids), is_editorial)
         )
     conn.commit()
     conn.close()
+
+
+def rotate_articles(days=7):
+    conn = get_conn()
+    cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
+    cursor = conn.execute('DELETE FROM articles WHERE fetched < ?', (cutoff,))
+    deleted_articles = cursor.rowcount
+    cursor2 = conn.execute('DELETE FROM word_frequencies WHERE date < ?', (
+        (datetime.utcnow() - timedelta(days=days)).date().isoformat(),))
+    deleted_words = cursor2.rowcount
+    cursor3 = conn.execute('DELETE FROM sync_events WHERE last_seen < ?', (cutoff,))
+    deleted_syncs = cursor3.rowcount
+    conn.commit()
+    conn.close()
+    return deleted_articles, deleted_words, deleted_syncs
