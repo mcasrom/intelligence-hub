@@ -8,11 +8,13 @@ COUNTRIES = {
     "elpais.com": "espana", "elmundo.es": "espana",
     "lavanguardia.com": "espana", "eldiariocantabria.publico.es": "espana",
     "washingtonpost.com": "estados_unidos", "wsj.com": "estados_unidos",
+    "cnn.com": "estados_unidos", "nytimes.com": "estados_unidos",
     "lemonde.fr": "francia", "lefigaro.fr": "francia",
     "bbc.co.uk": "reino_unido", "theguardian.com": "reino_unido",
     "corriere.it": "italia", "ilsole24ore.com": "italia",
     "spiegel.de": "alemania", "dw.com": "alemania",
     "folha.uol.com.br": "brasil", "oglobo.globo.com": "brasil",
+    "g1.globo.com": "brasil",
 }
 
 
@@ -42,7 +44,7 @@ def process_feed(source_name, source_url, lang, timeout=15):
         return [], status
 
     articles = []
-    for entry in feed.entries[:10]:
+    for entry in feed.entries[:20]:
         article = {
             "title": entry.get("title", "").strip(),
             "url": entry.get("link", ""),

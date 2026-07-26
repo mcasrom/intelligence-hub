@@ -4,7 +4,7 @@ import yaml
 import json
 import requests
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from src.db import init_db, save_articles, get_articles_window, save_word_frequencies, save_sync_event, update_clusters, get_sync_events, get_words_in_window, rotate_articles
 from src.scraper import scrape_all
