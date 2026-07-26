@@ -26,6 +26,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -405,6 +406,24 @@
     </div>
 </div>
 {% endif %}
+
+<div class="section" id="kpi">
+    <div class="section-title">📈 KPI 7 días <span class="badge">artículos / fuentes / clústeres</span></div>
+    <div style="position:relative;height:260px;">
+        <canvas id="kpiChart" style="width:100%;height:100%;"></canvas>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;justify-content:center;">
+        {% for i in range(7) %}
+        <a{% if chart_data.editions[i] %} href="{{ chart_data.editions[i] }}_day_briefing.html"{% endif %}
+           style="display:flex;flex-direction:column;align-items:center;padding:8px 12px;border-radius:8px;text-decoration:none;
+                  {% if chart_data.editions[i] %}background:#111827;border:1px solid #1a2a4a;color:#4fc3f7;{% else %}background:#0a0e17;border:1px solid #0d1520;color:#2a3a5a;{% endif %}">
+            <span style="font-size:0.7em;color:#607d8b;">{{ chart_data.labels[i] }}</span>
+            <span style="font-size:1.1em;font-weight:700;">{{ chart_data.articles[i] }}</span>
+            <span style="font-size:0.6em;color:#607d8b;">arts</span>
+        </a{% if chart_data.editions[i] %}>{% else %}>{% endif %}
+        {% endfor %}
+    </div>
+</div>
 
 <div class="section" id="archivo">
     <div class="section-title">🗂 Archivo de Noticias <span class="badge">7 días</span></div>
@@ -815,6 +834,86 @@ fetch(COUNTER_URL + '?visit=1', { mode: 'cors' })
     .then(r => r.json())
     .then(d => { document.getElementById('visit-count').textContent = d.count; })
     .catch(() => { document.getElementById('visit-count').textContent = '---'; });
+
+// ── KPI Chart ──
+(function() {
+    const labels = {{ chart_data.labels | tojson }};
+    const articles = {{ chart_data.articles | tojson }};
+    const sources = {{ chart_data.sources | tojson }};
+    const clusters = {{ chart_data.clusters | tojson }};
+    const canvas = document.getElementById('kpiChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Artículos',
+                    data: articles,
+                    backgroundColor: 'rgba(0, 212, 255, 0.5)',
+                    borderColor: 'rgba(0, 212, 255, 1)',
+                    borderWidth: 1,
+                    order: 2,
+                    yAxisID: 'y',
+                },
+                {
+                    label: 'Fuentes activas',
+                    data: sources,
+                    type: 'line',
+                    borderColor: '#ffd54f',
+                    backgroundColor: 'rgba(255, 213, 79, 0.1)',
+                    pointBackgroundColor: '#ffd54f',
+                    pointRadius: 4,
+                    tension: 0.3,
+                    order: 1,
+                    yAxisID: 'y1',
+                },
+                {
+                    label: 'Clústeres',
+                    data: clusters,
+                    type: 'line',
+                    borderColor: '#69f0ae',
+                    backgroundColor: 'rgba(105, 240, 174, 0.1)',
+                    pointBackgroundColor: '#69f0ae',
+                    pointRadius: 3,
+                    tension: 0.3,
+                    borderDash: [4, 2],
+                    order: 0,
+                    yAxisID: 'y1',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: '#78909c', font: { size: 10, family: 'Inter' } }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#607d8b', font: { size: 10 } },
+                    grid: { color: '#1a2a4a' }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#607d8b', font: { size: 9 }, stepSize: 1 },
+                    grid: { color: '#1a2a4a' },
+                    title: { display: true, text: 'Artículos', color: '#00d4ff', font: { size: 9 } }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    ticks: { color: '#607d8b', font: { size: 9 }, stepSize: 1 },
+                    grid: { drawOnChartArea: false },
+                    title: { display: true, text: 'Fuentes / Clústeres', color: '#ffd54f', font: { size: 9 } }
+                }
+            }
+        }
+    });
+})();
 </script>
 
 </body>

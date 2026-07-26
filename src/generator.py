@@ -70,6 +70,25 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
         f = OUTPUT_DIR / f'{ds}_day_briefing.html'
         archive.append({'date': ds, 'exists': f.exists(), 'label': d.strftime('%d/%m/%y')})
 
+    # ── KPI Chart Data ──────────────────────────────────────────────
+    chart_data = {'labels': [], 'articles': [], 'sources': [], 'clusters': [], 'editions': []}
+    now_local = datetime.now(timezone.utc)
+    for i in range(6, -1, -1):
+        d = now_local - timedelta(days=i)
+        ds = d.strftime('%y%m%d')
+        label = d.strftime('%d/%m')
+        chart_data['labels'].append(label)
+        day_arts = [a for a in articles if _article_matches_date(a, ds)]
+        chart_data['articles'].append(len(day_arts))
+        active_srcs = len(set(a['source'] for a in day_arts))
+        chart_data['sources'].append(active_srcs)
+        day_clusters = sum(1 for c in clusters.values() if any(
+            _article_matches_date(a, ds) for a in c.get('articles', [])
+        ))
+        chart_data['clusters'].append(day_clusters)
+        edition_file = OUTPUT_DIR / f'{ds}_day_briefing.html'
+        chart_data['editions'].append(ds if edition_file.exists() else None)
+
     env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
     template = env.get_template('briefing.html')
 
@@ -132,6 +151,7 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
         feed_status=feed_status or [],
         site_domain=site_domain or 'viajeinteligencia.com',
         archive=archive,
+        chart_data=chart_data,
         total_articles=len(articles),
         total_clusters=len(clusters),
         generated_at=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S'),
