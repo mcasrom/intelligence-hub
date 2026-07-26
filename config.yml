@@ -74,9 +74,9 @@ sources:
     url: https://eldiariocantabria.publico.es/rss/
   estados_unidos:
   - lang: en
-    name: CNN
+    name: Fox News
     type: general
-    url: http://rss.cnn.com/rss/cnn_topstories.rss
+    url: https://moxie.foxnews.com/google-publisher/world.xml
   - lang: en
     name: NYT
     type: general
