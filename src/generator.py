@@ -1,9 +1,11 @@
+from email.utils import parsedate_to_datetime
+import json
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 
-TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
-OUTPUT_DIR = Path(__file__).parent.parent / "output"
+TEMPLATES_DIR = Path(__file__).parent.parent / 'templates'
+OUTPUT_DIR = Path(__file__).parent.parent / 'output'
 
 
 def _ensure_dirs():
@@ -11,36 +13,60 @@ def _ensure_dirs():
     OUTPUT_DIR.mkdir(exist_ok=True)
 
 
+def _article_matches_date(article, date_str):
+    published = article.get('published')
+    if not published:
+        return False
+    try:
+        dt = parsedate_to_datetime(published)
+        article_date = dt.strftime('%y%m%d')
+        return article_date == date_str
+    except Exception:
+        return False
+
+
 def generate_briefing(articles, clusters, sync_events, frequencies, trends, date_str=None,
                       sources=None, llm_model=None, wordclouds=None,
                       breaking=None, entities=None, site_domain=None,
-                      feed_status=None):
+                      feed_status=None, is_index=True):
     _ensure_dirs()
     if not date_str:
-        date_str = datetime.now(timezone.utc).strftime("%y%m%d")
+        date_str = datetime.now(timezone.utc).strftime('%y%m%d')
 
     archive = []
     for i in range(7):
         d = datetime.now(timezone.utc) - timedelta(days=i)
-        ds = d.strftime("%y%m%d")
-        f = OUTPUT_DIR / f"{ds}_day_briefing.html"
-        archive.append({"date": ds, "exists": f.exists(), "label": d.strftime("%d/%m/%y")})
+        ds = d.strftime('%y%m%d')
+        f = OUTPUT_DIR / f'{ds}_day_briefing.html'
+        archive.append({'date': ds, 'exists': f.exists(), 'label': d.strftime('%d/%m/%y')})
 
     env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
-    template = env.get_template("briefing.html")
+    template = env.get_template('briefing.html')
+
+    articles = [a for a in articles if _article_matches_date(a, date_str)]
+
+    # Filter cluster articles to match the edition date
+    filtered_clusters = {}
+    for cid, cdata in clusters.items():
+        fc = dict(cdata)
+        fc['articles'] = [a for a in cdata.get('articles', []) if _article_matches_date(a, date_str)]
+        fc['size'] = len(fc['articles'])
+        if fc['size'] >= 2:
+            filtered_clusters[cid] = fc
+    clusters = filtered_clusters
 
     by_country = {}
     for a in articles:
-        country = a.get("country", "internacional")
+        country = a.get('country', 'internacional')
         if country not in by_country:
             by_country[country] = {}
-        source = a["source"]
+        source = a['source']
         if source not in by_country[country]:
             by_country[country][source] = []
         by_country[country][source].append(a)
 
     html = template.render(
-        date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        date=datetime.now(timezone.utc).strftime('%Y-%m-%d'),
         date_str=date_str,
         by_country=by_country,
         clusters=clusters,
@@ -53,81 +79,51 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
         breaking=breaking or [],
         entities=entities or {},
         feed_status=feed_status or [],
-        site_domain=site_domain or "viajeinteligencia.com",
+        site_domain=site_domain or 'viajeinteligencia.com',
         archive=archive,
         total_articles=len(articles),
         total_clusters=len(clusters),
-        generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+        generated_at=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S'),
     )
 
-    output_path = OUTPUT_DIR / f"{date_str}_day_briefing.html"
-    output_path.write_text(html, encoding="utf-8")
-    print(f"  [OK] Briefing generado: {output_path}")
-
-    index_path = OUTPUT_DIR / "index.html"
-    index_path.write_text(html, encoding="utf-8")
-    print(f"  [OK] Index actualizado: {index_path}")
-
+    output_path = OUTPUT_DIR / f'{date_str}_day_briefing.html'
+    output_path.write_text(html, encoding='utf-8')
+    print(f'  [OK] Briefing generado: {output_path}')
+    if is_index:
+        index_path = OUTPUT_DIR / 'index.html'
+        index_path.write_text(html, encoding='utf-8')
+        print(f'  [OK] Index actualizado: {index_path}')
     return output_path
 
 
 def generate_clusters_page(clusters, date_str=None):
     _ensure_dirs()
     if not date_str:
-        date_str = datetime.now(timezone.utc).strftime("%y%m%d")
-
+        date_str = datetime.now(timezone.utc).strftime('%y%m%d')
     env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
-    template = env.get_template("clusters.html")
-
+    template = env.get_template('clusters.html')
     html = template.render(
-        date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        date=datetime.now(timezone.utc).strftime('%Y-%m-%d'),
         date_str=date_str,
         clusters=clusters,
-        generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+        generated_at=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S'),
     )
-
-    output_path = OUTPUT_DIR / "clusters.html"
-    output_path.write_text(html, encoding="utf-8")
-    print(f"  [OK] Clusters generados: {output_path}")
+    output_path = OUTPUT_DIR / 'clusters.html'
+    output_path.write_text(html, encoding='utf-8')
+    print(f'  [OK] Clusters generados: {output_path}')
 
 
 def generate_json_data(articles, clusters, sync_events, frequencies, trends, date_str=None):
     _ensure_dirs()
     data = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "total_articles": len(articles),
-        "articles": articles[:100],
-        "clusters": list(clusters.values()) if isinstance(clusters, dict) else clusters,
-        "sync_events": sync_events[:20],
-        "word_frequencies": frequencies,
-        "trends": trends,
+        'generated_at': datetime.now(timezone.utc).isoformat(),
+        'total_articles': len(articles),
+        'articles': articles[:100],
+        'clusters': list(clusters.values()) if isinstance(clusters, dict) else clusters,
+        'sync_events': sync_events[:20],
+        'word_frequencies': frequencies,
+        'trends': trends,
     }
-    output_path = OUTPUT_DIR / "data.json"
-    import json
-    output_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"  [OK] JSON data: {output_path}")
-
-
-def ensure_pwa_files():
-    _ensure_dirs()
-    manifest = OUTPUT_DIR / "manifest.json"
-    if not manifest.exists():
-        manifest.write_text(json.dumps({
-            "name": "Intelligence Hub",
-            "short_name": "IntelHub",
-            "description": "Análisis geopolítico automatizado",
-            "start_url": "/", "display": "standalone",
-            "background_color": "#0a0e17", "theme_color": "#0a0e17",
-            "icons": [
-                {"src": "/favicon-48.png", "sizes": "48x48", "type": "image/png"},
-                {"src": "/favicon.png", "sizes": "32x32", "type": "image/png"},
-                {"src": "/preview-icon.png", "sizes": "192x192", "type": "image/png"},
-            ]
-        }, indent=2), encoding="utf-8")
-    sw = OUTPUT_DIR / "sw.js"
-    if not sw.exists():
-        sw.write_text("""const C='intelhub-v1';const U=['/','/index.html','/manifest.json','/favicon.png'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(U)));self.skipWaiting();});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim();});
-self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>new Response('Offline',{status:503}))));});
-""")
+    output_path = OUTPUT_DIR / 'data.json'
+    output_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
+    print(f'  [OK] JSON data: {output_path}')
