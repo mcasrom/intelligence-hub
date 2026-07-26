@@ -51,7 +51,7 @@ def process_feed(source_name, source_url, lang, timeout=15):
             "source": source_name,
             "country": detect_country(entry.get("link", "")),
             "lang": lang,
-            "published": entry.get("published", datetime.utcnow().isoformat()),
+            "published": entry.get("published") or entry.get("updated") or datetime.utcnow().isoformat(),
         }
         if article["title"] and article["url"]:
             articles.append(article)

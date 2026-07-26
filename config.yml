@@ -38,10 +38,10 @@ rotation:
   min_interval: 900
 sources:
   alemania:
-  - lang: en
+  - lang: de
     name: Der Spiegel
     type: general
-    url: https://www.spiegel.de/international/index.rss
+    url: https://www.spiegel.de/schlagzeilen/index.rss
   - lang: en
     name: Deutsche Welle
     type: general
