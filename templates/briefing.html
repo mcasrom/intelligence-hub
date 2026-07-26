@@ -17,7 +17,8 @@
     <meta name="twitter:description" content="Análisis geopolítico automatizado · 7 países · 16 fuentes">
     <meta name="twitter:image" content="https://{{ site_domain }}/preview.jpg">
     <link rel="icon" type="image/png" href="/favicon.png">
-    <link rel="apple-touch-icon" href="/preview-icon.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/preview-icon.png">
     <link rel="manifest" href="/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -95,6 +96,8 @@
 
         /* ── COUNTRY / SOURCE ── */
         .country-block { margin-bottom: 25px; }
+        .country-block + .country-block { margin-top: 35px; padding-top: 25px; border-top: 2px solid #1a2a4a; }
+        .source-block + .source-block { margin-top: 18px; padding-top: 12px; border-top: 1px dashed #0d1520; }
         .country-header {
             font-size: 1.3em; color: #4fc3f7; margin-bottom: 12px;
             padding-bottom: 8px; border-bottom: 1px solid #1a2a4a;
@@ -305,6 +308,7 @@
             .window-card ol { columns: 1; }
         }
     </style>
+<!-- SEPARADORES ACTIVOS ♥ -->
 </head>
 <body>
 
@@ -479,20 +483,28 @@
 
 <div class="section" id="titulares">
     <div class="section-title">📰 Titulares por país <span class="badge">{{ total_articles }}</span></div>
-    {% for country, sources in by_country.items() %}
+    {% for country, country_data in all_sources.items() %}
     <div class="country-block">
         <div class="country-header">
-            {% if country == 'espana' %}🇪🇸{% elif country == 'estados_unidos' %}🇺🇸{% elif country == 'francia' %}🇫🇷
-            {% elif country == 'reino_unido' %}🇬🇧{% elif country == 'italia' %}🇮🇹{% elif country == 'alemania' %}🇩🇪
-            {% elif country == 'brasil' %}🇧🇷{% else %}🌐{% endif %}
-            {{ country|replace('_', ' ')|title }}
+            {% set country_key = country|lower|replace(' ', '_') %}
+            {% if country_key == 'espana' %}🇪🇸{% elif country_key == 'estados_unidos' %}🇺🇸{% elif country_key == 'francia' %}🇫🇷
+            {% elif country_key == 'reino_unido' %}🇬🇧{% elif country_key == 'italia' %}🇮🇹{% elif country_key == 'alemania' %}🇩🇪
+            {% elif country_key == 'brasil' %}🇧🇷{% else %}🌐{% endif %}
+            {{ country }}
+            <span style="color:#455a64;font-size:0.65em;font-weight:400;margin-left:8px;">
+                {{ country_data.total }} artículos
+            </span>
         </div>
-        {% for source, articles in sources.items() %}
+        {% for src_name, src_data in country_data.sources.items() %}
         <div class="source-block">
-            <div class="source-name" onclick="toggleFav(this)" data-source="{{ source }}">
-                <span class="star">☆</span> {{ source }}
+            <div class="source-name" onclick="toggleFav(this)" data-source="{{ src_name }}">
+                <span class="star">☆</span> {{ src_name }}
+                <span style="color:#455a64;font-size:0.75em;margin-left:6px;">({{ src_data.count }})</span>
+                {% if src_data.count == 0 %}
+                <span style="color:#2a3a5a;font-size:0.7em;margin-left:4px;">— sin titulares hoy —</span>
+                {% endif %}
             </div>
-            {% for a in articles %}
+            {% for a in src_data.articles %}
             <div class="article">
                 <a href="{{ a.url }}" target="_blank">{{ a.title }}</a>
             </div>

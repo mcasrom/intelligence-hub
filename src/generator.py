@@ -1,4 +1,3 @@
-from email.utils import parsedate_to_datetime
 import json
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -13,12 +12,40 @@ def _ensure_dirs():
     OUTPUT_DIR.mkdir(exist_ok=True)
 
 
+def _parse_date(date_str):
+    s = date_str.strip()
+    formats = [
+        '%a, %d %b %Y %H:%M:%S %z',
+        '%a, %d %b %Y %H:%M:%S %Z',
+        '%d %b %Y %H:%M:%S %z',
+        '%d %b %Y %H:%M:%S %Z',
+        '%d %b %Y %H:%M:%S',
+        '%Y-%m-%dT%H:%M:%S%z',
+        '%Y-%m-%dT%H:%M:%SZ',
+        '%Y-%m-%dT%H:%M:%S',
+        '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%d',
+        '%d/%m/%Y',
+    ]
+    for fmt in formats:
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError:
+            continue
+    try:
+        from email.utils import parsedate_to_datetime
+        return parsedate_to_datetime(s)
+    except Exception:
+        return None
+
 def _article_matches_date(article, date_str):
     published = article.get('published')
     if not published:
         return False
+    dt = _parse_date(published)
+    if dt is None:
+        return False
     try:
-        dt = parsedate_to_datetime(published)
         article_date = dt.strftime('%y%m%d')
         return article_date == date_str
     except Exception:
@@ -55,6 +82,8 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
             filtered_clusters[cid] = fc
     clusters = filtered_clusters
 
+    MAX_ARTICLES_PER_SOURCE = 8
+
     by_country = {}
     for a in articles:
         country = a.get('country', 'internacional')
@@ -63,12 +92,31 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
         source = a['source']
         if source not in by_country[country]:
             by_country[country][source] = []
-        by_country[country][source].append(a)
+        if len(by_country[country][source]) < MAX_ARTICLES_PER_SOURCE:
+            by_country[country][source].append(a)
+
+    all_sources = {}
+    for country_key, feeds in (sources or {}).items():
+        display_country = country_key.replace('_', ' ').title()
+        all_sources[display_country] = {'sources': {}, 'total': 0}
+        for feed in feeds:
+            src_name = feed['name']
+            lang = feed.get('lang', '')
+            found_articles = by_country.get(country_key, {}).get(src_name, [])
+            count = len(found_articles)
+            all_sources[display_country]['sources'][src_name] = {
+                'articles': found_articles,
+                'lang': lang,
+                'url': feed.get('url', ''),
+                'count': count,
+            }
+            all_sources[display_country]['total'] += count
 
     html = template.render(
         date=datetime.now(timezone.utc).strftime('%Y-%m-%d'),
         date_str=date_str,
         by_country=by_country,
+        all_sources=all_sources,
         clusters=clusters,
         sync_events=sync_events,
         frequencies=frequencies,
