@@ -14,6 +14,7 @@ from src.clusterer import compute_clusters
 from src.sync_detector import detect_sync_groups
 from src.analytics import compute_frequencies, compute_trending
 from src.llm import LLMProvider
+from src.narrative import detect_actor_mentions, aggregate_stance, detect_coordination
 from src.generator import generate_briefing, generate_clusters_page, generate_json_data
 from src.deploy import deploy
 
@@ -197,6 +198,32 @@ def main(fast=False):
 
     print('')
     print('=' * 60)
+    print('FASE 9: Analisis de Narrativa')
+    print('=' * 60)
+    stance_data = {}
+    coordination_flags = []
+    actor_mentions = detect_actor_mentions(db_articles)
+    print('  Actores detectados: ' + str(len(actor_mentions)))
+    for actor, arts in sorted(actor_mentions.items()):
+        print('    ' + actor + ': ' + str(len(arts)) + ' articulos')
+    if actor_mentions and mode == 'production':
+        try:
+            stance_data = aggregate_stance(actor_mentions, llm)
+            for actor, sources in stance_data.items():
+                total = sum(sum(v.values()) for v in sources.values())
+                print('  [OK] ' + actor + ': ' + str(total) + ' clasificados')
+        except Exception as e:
+            print('  [WARN] Stance analysis fallo: ' + str(e))
+            errors.append('Stance: ' + str(e))
+    if sync_events:
+        coordination_flags = detect_coordination(sync_events, db_articles)
+        if coordination_flags:
+            print('  [!] Posible coordinacion: ' + str(len(coordination_flags)) + ' eventos')
+        else:
+            print('  Sin coordinacion detectada')
+
+    print('')
+    print('=' * 60)
     print('FASE 7: Generando HTML + JSON')
     print('=' * 60)
     llm_cfg = config.get('llm', {}).get('test' if mode == 'test' else 'production', {})
@@ -204,7 +231,8 @@ def main(fast=False):
     generate_briefing(db_articles, active_clusters, sync_events, frequencies, trends,
                       date_str, sources=config['sources'], llm_model=llm_model,
                       wordclouds={}, breaking=[], entities={},
-                      feed_status=feed_status,
+                      feed_status=feed_status, stance_data=stance_data,
+                      coordination_flags=coordination_flags,
                       site_domain=config.get('deploy', {}).get('site_domain'),
                       is_index=True)
 
@@ -213,7 +241,8 @@ def main(fast=False):
         generate_briefing(db_articles, active_clusters, sync_events, frequencies, trends,
                           ds, sources=config['sources'], llm_model=llm_model,
                           wordclouds={}, breaking=[], entities={},
-                          feed_status=feed_status,
+                          feed_status=feed_status, stance_data=stance_data,
+                          coordination_flags=coordination_flags,
                           site_domain=config.get('deploy', {}).get('site_domain'),
                           is_index=False)
     generate_clusters_page(active_clusters, date_str)

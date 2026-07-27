@@ -55,7 +55,7 @@ def _article_matches_date(article, date_str):
         return False
 
 
-def generate_briefing(articles, clusters, sync_events, frequencies, trends, date_str=None,
+def generate_briefing(articles, clusters, sync_events, frequencies, trends, date_str=None, stance_data=None, coordination_flags=None,
                       sources=None, llm_model=None, wordclouds=None,
                       breaking=None, entities=None, site_domain=None,
                       feed_status=None, is_index=True):
@@ -149,6 +149,8 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
         breaking=breaking or [],
         entities=entities or {},
         feed_status=feed_status or [],
+        stance_data=stance_data or {},
+        coordination_flags=coordination_flags or [],
         site_domain=site_domain or 'viajeinteligencia.com',
         archive=archive,
         chart_data=chart_data,

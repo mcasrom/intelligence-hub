@@ -149,6 +149,7 @@
         .sync-card .sources { color: #ffd54f; font-size: 0.85em; margin-top: 4px; }
         .sync-card .countries { color: #546e7a; font-size: 0.8em; margin-top: 2px; }
 
+/* ── STANCE ── */        .stance-grid {            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));            gap: 15px;        }        .stance-card {            background: linear-gradient(135deg, #111827, #0d1520);            border: 1px solid #1a2a4a; border-radius: 10px; padding: 16px;        }        .stance-card h3 { color: #4fc3f7; font-size: 1em; margin-bottom: 8px; }        .stance-card .bar { display: flex; height: 20px; border-radius: 4px; overflow: hidden; margin: 4px 0; }        .stance-card .bar .pro { background: #4caf50; }        .stance-card .bar .contra { background: #f44336; }        .stance-card .bar .neutral { background: #607d8b; }        .stance-card .src-row { display: flex; justify-content: space-between; font-size: 0.85em; margin: 6px 0; }        .stance-card .src-row .name { color: #b0bec5; }        .stance-card .src-row .counts { color: #78909c; }        .stance-card .legend { display: flex; gap: 12px; font-size: 0.75em; color: #607d8b; margin-top: 6px; }        .stance-card .legend span { display: flex; align-items: center; gap: 4px; }        .stance-card .legend .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }        /* ── COORDINATION ── */        .coord-card {            background: linear-gradient(135deg, #1a1520, #0d1520);            border: 1px solid #4a2a2a; border-left: 4px solid #ff5252;            border-radius: 10px; padding: 14px 18px; margin-bottom: 12px;        }        .coord-card .topic { font-weight: 600; color: #ff8a80; font-size: 1em; }        .coord-card .meta { color: #607d8b; font-size: 0.8em; margin-top: 4px; }
         /* ── WORD WINDOWS ── */
         .windows-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -495,6 +496,55 @@
             {{ se.size }} fuentes: {{ se.sources|join(', ') }}
         </div>
         <div class="countries">🌐 {{ se.countries|join(', ')|upper }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+
+{% if stance_data %}
+<div class="section" id="cobertura">
+    <div class="section-title">&#127758; Cobertura por bloque <span class="badge">{{ stance_data|length }} actores</span></div>
+    <div class="stance-grid">
+    {% for actor, sources in stance_data.items() %}
+        <div class="stance-card">
+            <h3>{{ actor }}</h3>
+            {% for src_name, counts in sources.items() %}
+            <div class="src-row">
+                <span class="name">{{ src_name }}</span>
+                <span class="counts">&#128077; {{ counts.pro }} &#128078; {{ counts.contra }} &#10134; {{ counts.neutral }}</span>
+            </div>
+            {% set total = counts.pro + counts.contra + counts.neutral %}
+            {% if total > 0 %}
+            <div class="bar">
+                <div class="pro" style="width:{{ (counts.pro / total * 100)|int }}%"></div>
+                <div class="contra" style="width:{{ (counts.contra / total * 100)|int }}%"></div>
+                <div class="neutral" style="width:{{ (counts.neutral / total * 100)|int }}%"></div>
+            </div>
+            {% endif %}
+            {% endfor %}
+            <div class="legend">
+                <span><span class="dot" style="background:#4caf50;"></span> Pro</span>
+                <span><span class="dot" style="background:#f44336;"></span> Contra</span>
+                <span><span class="dot" style="background:#607d8b;"></span> Neutral</span>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+
+{% if coordination_flags %}
+<div class="section" id="coordinacion">
+    <div class="section-title">&#9888;&#65039; Posible coordinacion <span class="badge">{{ coordination_flags|length }}</span></div>
+    <div style="color:#607d8b;font-size:0.85em;margin:-10px 0 18px;border-left:3px solid #4a2a2a;padding-left:14px;">
+        <strong style="color:#78909c;">&#191;Que es?</strong> Varias fuentes cubriendo el mismo tema con el mismo angulo en una ventana de &lt; 6 horas. Puede indicar coordinacion editorial o agenda sincronizada.
+    </div>
+    {% for flag in coordination_flags[:10] %}
+    <div class="coord-card">
+        <div class="topic">{{ flag.topic }}</div>
+        <div class="meta">{{ flag.sources|join(', ') }} &#183; {{ flag.countries|join(', ')|upper }} &#183; {{ flag.spread_hours }}h de diferencia</div>
     </div>
     {% endfor %}
 </div>
