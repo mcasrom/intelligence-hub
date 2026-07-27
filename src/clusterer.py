@@ -13,6 +13,7 @@ def compute_clusters(articles, embeddings, min_cluster_size=2, min_samples=1):
         min_samples=min_samples,
         metric="euclidean",
         cluster_selection_method="eom",
+        copy=True,
     )
     labels = clusterer.fit_predict(matrix)
 
