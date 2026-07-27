@@ -55,7 +55,7 @@ def _article_matches_date(article, date_str):
         return False
 
 
-def generate_briefing(articles, clusters, sync_events, frequencies, trends, date_str=None, stance_data=None, coordination_flags=None,
+def generate_briefing(articles, clusters, sync_events, frequencies, trends, date_str=None, stance_data=None, coordination_flags=None, all_articles_in_window=None,
                       sources=None, llm_model=None, wordclouds=None,
                       breaking=None, entities=None, site_domain=None,
                       feed_status=None, is_index=True):
@@ -117,10 +117,17 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
         if len(by_country[country][source]) < MAX_ARTICLES_PER_SOURCE:
             by_country[country][source].append(a)
 
+    real_counts = {}
+    # Only count articles matching the current edition date
+    for a in (all_articles_in_window or articles):
+        if _article_matches_date(a, date_str):
+            c = a.get('country', 'internacional')
+            real_counts[c] = real_counts.get(c, 0) + 1
+
     all_sources = {}
     for country_key, feeds in (sources or {}).items():
         display_country = country_key.replace('_', ' ').title()
-        all_sources[display_country] = {'sources': {}, 'total': 0}
+        all_sources[display_country] = {'sources': {}, 'total': real_counts.get(country_key, 0)}
         for feed in feeds:
             src_name = feed['name']
             lang = feed.get('lang', '')
@@ -132,7 +139,6 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
                 'url': feed.get('url', ''),
                 'count': count,
             }
-            all_sources[display_country]['total'] += count
 
     html = template.render(
         date=datetime.now(timezone.utc).strftime('%Y-%m-%d'),

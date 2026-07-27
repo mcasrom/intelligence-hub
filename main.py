@@ -228,8 +228,7 @@ def main(fast=False):
     print('=' * 60)
     llm_cfg = config.get('llm', {}).get('test' if mode == 'test' else 'production', {})
     llm_model = llm_cfg.get('ollama_model') or llm_cfg.get('groq_model')
-    generate_briefing(db_articles, active_clusters, sync_events, frequencies, trends,
-                      date_str, sources=config['sources'], llm_model=llm_model,
+    generate_briefing(db_articles, active_clusters, sync_events, frequencies, trends, date_str=date_str, all_articles_in_window=db_articles, sources=config['sources'], llm_model=llm_model,
                       wordclouds={}, breaking=[], entities={},
                       feed_status=feed_status, stance_data=stance_data,
                       coordination_flags=coordination_flags,
@@ -238,8 +237,7 @@ def main(fast=False):
 
     for i in range(1, 7):
         ds = (now - timedelta(days=i)).strftime('%y%m%d')
-        generate_briefing(db_articles, active_clusters, sync_events, frequencies, trends,
-                          ds, sources=config['sources'], llm_model=llm_model,
+        generate_briefing(db_articles, active_clusters, sync_events, frequencies, trends, date_str=ds, all_articles_in_window=db_articles, sources=config['sources'], llm_model=llm_model,
                           wordclouds={}, breaking=[], entities={},
                           feed_status=feed_status, stance_data=stance_data,
                           coordination_flags=coordination_flags,

@@ -104,7 +104,10 @@
             padding-bottom: 8px; border-bottom: 1px solid #1a2a4a;
         }
         .source-block { margin: 10px 0 10px 18px; }
-        .source-name {
+        .source-block.closed .article { display: none; }
+        .source-block.closed .source-name::after { content: "\25b6"; font-size: 0.7em; color: #455a64; margin-left: 6px; }
+        .source-block:not(.closed) .source-name::after { content: "\25bc"; font-size: 0.7em; color: #455a64; margin-left: 6px; }
+        .source-name { cursor: pointer; user-select: none; 
             color: #78909c; font-size: 0.85em; text-transform: uppercase;
             letter-spacing: 1.2px; margin-bottom: 5px;
             display: flex; align-items: center; gap: 6px; cursor: pointer;
@@ -112,8 +115,6 @@
         .source-name .star { color: #2a3a5a; font-size: 1.1em; transition: color 0.2s; user-select: none; }
         .source-name .star.fav { color: #ffd54f; }
         .source-name:hover .star { color: #4a5a7a; }
-        .source-name:hover .star.fav { color: #ffd54f; }
-        .source-block.fav-source .article { border-left-color: #2a4a3a; }
         .article {
             padding: 5px 0 5px 16px; border-left: 2px solid #1a2a4a;
             margin: 4px 0; transition: border-color 0.15s;
@@ -309,7 +310,23 @@
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .window-card ol { columns: 1; }
         }
-    </style>
+    
+        /* ── ACCORDION ── */
+        summary.section-title { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 12px; padding: 0; }
+        summary.section-title:hover { opacity: 0.8; }
+        summary.section-title::after { content: "\25bc"; font-size: 0.6em; color: #455a64; margin-left: auto; transition: transform 0.2s; }
+        details.section:not([open]) summary.section-title::after { transform: rotate(-90deg); }
+        details.section { border-bottom: none; padding: 0; }
+
+
+        /* ── ACCORDION ── */
+        summary.section-title { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 12px; padding: 0; }
+        summary.section-title:hover { opacity: 0.8; }
+        summary.section-title::after { content: "\25bc"; font-size: 0.6em; color: #455a64; margin-left: auto; transition: transform 0.2s; }
+        details.section:not([open]) summary.section-title::after { transform: rotate(-90deg); }
+        details.section { border-bottom: none; padding: 0; }
+
+</style>
 <!-- SEPARADORES ACTIVOS ♥ -->
 </head>
 <body>
@@ -446,8 +463,8 @@
 </div>
 
 {% if clusters %}
-<div class="section" id="clusters">
-    <div class="section-title">🗂 Clústeres de noticias <span class="badge">{{ clusters|length }}</span></div>
+<details class="section" id="clusters">
+    <summary class="section-title">🗂 Clústeres de noticias <span class="badge">{{ clusters|length }}</span></summary>
     <div class="section-desc" style="color:#607d8b;font-size:0.9em;margin:-10px 0 18px;border-left:3px solid #1a2a4a;padding-left:14px;">
         <strong style="color:#78909c;">¿Qué es un clúster?</strong> Un clúster agrupa noticias que hablan del mismo tema, detectado automáticamente por similitud semántica entre titulares. Cada clúster reúne artículos de distintas fuentes y países que cubren un mismo evento o narrativa. Los clústeres con un solo artículo se filtran como ruido. Los listados aquí tienen <strong>2 o más artículos</strong>.
     </div>
@@ -482,12 +499,12 @@
         </div>
     </div>
     {% endfor %}
-</div>
+</details>
 {% endif %}
 
 {% if sync_events %}
-<div class="section" id="sincronizadas">
-    <div class="section-title">🔗 Noticias sincronizadas <span class="badge">{{ sync_events|length }}</span></div>
+<details class="section" id="sincronizadas">
+    <summary class="section-title">🔗 Noticias sincronizadas <span class="badge">{{ sync_events|length }}</span></summary>
     {% for se in sync_events[:15] %}
     <div class="sync-card{% if se.is_editorial %} editorial{% endif %}">
         <div class="topic">{{ se.topic }}</div>
@@ -498,13 +515,13 @@
         <div class="countries">🌐 {{ se.countries|join(', ')|upper }}</div>
     </div>
     {% endfor %}
-</div>
+</details>
 {% endif %}
 
 
 {% if stance_data %}
-<div class="section" id="cobertura">
-    <div class="section-title">&#127758; Cobertura por bloque <span class="badge">{{ stance_data|length }} actores</span></div>
+<details class="section" id="cobertura">
+    <summary class="section-title">&#127758; Cobertura por bloque <span class="badge">{{ stance_data|length }} actores</span></summary>
     <div class="stance-grid">
     {% for actor, sources in stance_data.items() %}
         <div class="stance-card">
@@ -531,13 +548,13 @@
         </div>
     {% endfor %}
     </div>
-</div>
+</details>
 {% endif %}
 
 
 {% if coordination_flags %}
-<div class="section" id="coordinacion">
-    <div class="section-title">&#9888;&#65039; Posible coordinacion <span class="badge">{{ coordination_flags|length }}</span></div>
+<details class="section" id="coordinacion">
+    <summary class="section-title">&#9888;&#65039; Posible coordinacion <span class="badge">{{ coordination_flags|length }}</span></summary>
     <div style="color:#607d8b;font-size:0.85em;margin:-10px 0 18px;border-left:3px solid #4a2a2a;padding-left:14px;">
         <strong style="color:#78909c;">&#191;Que es?</strong> Varias fuentes cubriendo el mismo tema con el mismo angulo en una ventana de &lt; 6 horas. Puede indicar coordinacion editorial o agenda sincronizada.
     </div>
@@ -547,7 +564,7 @@
         <div class="meta">{{ flag.sources|join(', ') }} &#183; {{ flag.countries|join(', ')|upper }} &#183; {{ flag.spread_hours }}h de diferencia</div>
     </div>
     {% endfor %}
-</div>
+</details>
 {% endif %}
 
 <div class="section" id="titulares">
@@ -565,8 +582,8 @@
             </span>
         </div>
         {% for src_name, src_data in country_data.sources.items() %}
-        <div class="source-block">
-            <div class="source-name" onclick="toggleFav(this)" data-source="{{ src_name }}">
+        <div class="source-block closed">
+            <div class="source-name" onclick="toggleSource(this);toggleFav(this)" data-source="{{ src_name }}">
                 <span class="star">☆</span> {{ src_name }}
                 <span style="color:#455a64;font-size:0.75em;margin-left:6px;">({{ src_data.count }})</span>
                 {% if src_data.count == 0 %}
@@ -830,6 +847,7 @@ function getFavs() {
 }
 function setFavs(f) { localStorage.setItem(FAV_KEY, JSON.stringify(f)); }
 
+function toggleSource(el) { el.closest(".source-block").classList.toggle("closed"); }
 function toggleFav(el) {
     const name = el.dataset.source;
     const star = el.querySelector('.star');
