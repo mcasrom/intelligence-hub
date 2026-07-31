@@ -714,7 +714,7 @@
         <p>Recolección vía <code>feedparser</code> desde 16 fuentes RSS en 7 países (ES, US, FR, UK, IT, DE, BR). Política de rate limiting con backoff exponencial + jitter para no saturar servidores. Cache TTL de 30 minutos.</p>
 
         <h3>🧬 Clustering (HDBSCAN)</h3>
-        <p>Los titulares se vectorizan mediante <code>TF-IDF char-wb ngrams(2,4)</code> en 500 dimensiones. Se aplica <code>HDBSCAN</code> con <code>min_cluster_size=2</code> para capturar tanto temas principales como pares de noticias relacionadas. Los puntos etiquetados como <code>-1</code> son ruido no agrupado.</p>
+        <p>Los titulares se vectorizan mediante un modelo semantico multilingue (<code>paraphrase-multilingual-MiniLM-L12-v2</code>, 384 dimensiones) que agrupa por significado cruzando idiomas. Se aplica <code>HDBSCAN</code> con distancia <code>cosine</code> y <code>min_cluster_size=2</code>. Los puntos etiquetados como <code>-1</code> son ruido no agrupado.</p>
 
         <h3>🔗 Detección de sincronizadas</h3>
         <p>Se calcula la <strong>similitud coseno</strong> entre todos los pares de embeddings. Si la similitud supera el umbral (<code>threshold=0.65</code>), se agrupan como una misma noticia cubierta por múltiples fuentes. Los editoriales se detectan por patrones de texto ("editorial", "opinión", columnistas conocidos).</p>

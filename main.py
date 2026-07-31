@@ -280,9 +280,12 @@ def main(fast=False):
     print('=' * 60)
     llm_cfg_tmp = config.get('llm', {}).get('production' if mode == 'production' else 'test', {})
     llm = LLMProvider(mode, groq_model=llm_cfg_tmp.get('groq_model', 'llama-3.3-70b-versatile'))
+    from src.clusterer import _cluster_keywords
     enriched_count = 0
-    for cid, cdata in list(active_clusters.items())[:5]:
+    top_clusters = sorted(active_clusters.items(), key=lambda kv: -kv[1]['size'])[:15]
+    for cid, cdata in top_clusters:
         titles_list = [a['title'] for a in cdata['articles']]
+        kw = ' '.join(sorted(_cluster_keywords(cdata['articles'])))
         try:
             summary = llm.label_cluster(titles_list)
             detailed = llm.summarize_cluster(titles_list)
@@ -291,8 +294,13 @@ def main(fast=False):
             enriched_count += 1
             print('  [OK] Cluster ' + str(cid) + ': ' + str(summary)[:60] + '...')
         except Exception as e:
-            print('  [WARN] Cluster ' + str(cid) + ': LLM fallo (' + str(e) + ')')
+            cdata['summary'] = kw or ('Cluster ' + str(cid))
+            print('  [WARN] Cluster ' + str(cid) + ': LLM fallo (' + str(e) + ') -> topic: ' + str(cdata['summary'])[:60])
             errors.append('LLM cluster ' + str(cid) + ': ' + str(e))
+    for cid, cdata in active_clusters.items():
+        if 'summary' not in cdata:
+            kw = ' '.join(sorted(_cluster_keywords(cdata['articles'])))
+            cdata['summary'] = kw or ('Cluster ' + str(cid))
 
     print('')
     print('=' * 60)

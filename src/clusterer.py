@@ -12,7 +12,7 @@ def compute_clusters(articles, embeddings, min_cluster_size=2, min_samples=1):
     clusterer = HDBSCAN(
         min_cluster_size=min_cluster_size,
         min_samples=min_samples,
-        metric="euclidean",
+        metric="cosine",
         cluster_selection_method="eom",
         copy=True,
     )
@@ -104,19 +104,30 @@ def merge_clusters_by_sync(clustered, sync_events):
         if cid != -1:
             article_to_cluster[a["id"]] = cid
 
+    cluster_articles = {}
+    for a in clustered:
+        cid = a.get("cluster_id", -1)
+        if cid != -1:
+            cluster_articles.setdefault(cid, []).append(a)
+
     cluster_merge_map = {}
     for se in sync_events:
-        article_ids = se.get("article_ids", [])
+        article_ids = set(se.get("article_ids", []))
         involved_clusters = set()
         for aid in article_ids:
             cid = article_to_cluster.get(aid)
             if cid is not None and cid != -1:
                 involved_clusters.add(cid)
         if len(involved_clusters) >= 2:
-            sorted_clusters = sorted(involved_clusters)
-            target = sorted_clusters[0]
-            for cid in sorted_clusters[1:]:
-                cluster_merge_map[cid] = target
+            covered = {}
+            for cid in involved_clusters:
+                n_evt = sum(1 for aid in article_ids if article_to_cluster.get(aid) == cid)
+                covered[cid] = n_evt / max(len(cluster_articles.get(cid, [])), 1)
+            if all(covered[cid] >= 0.5 for cid in involved_clusters):
+                sorted_clusters = sorted(involved_clusters)
+                target = sorted_clusters[0]
+                for cid in sorted_clusters[1:]:
+                    cluster_merge_map[cid] = target
 
     if not cluster_merge_map:
         print('  [MERGE] No hay clusters para fusionar')

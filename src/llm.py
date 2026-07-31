@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import hashlib
 import requests
 
@@ -61,6 +62,21 @@ class LLMProvider:
         self._save_cache(prompt, result)
         return result
 
+    def _parse_json_response(self, result):
+        if isinstance(result, dict):
+            return result
+        text = str(result).strip()
+        if text.startswith('```'):
+            text = re.sub(r'^```[a-zA-Z]*\s*', '', text)
+            text = re.sub(r'\s*```$', '', text)
+        parsed = json.loads(text)
+        if isinstance(parsed, dict):
+            parsed.setdefault('palabras_clave', [])
+            parsed.setdefault('angulo_editorial', '')
+            parsed.setdefault('paises_implicados', [])
+            return parsed
+        return None
+
     def summarize_cluster(self, titles, lang='es'):
         titles = self._truncate_titles(titles, 2000)
         prompt = f'''Analiza estas noticias y responde SOLO con JSON:
@@ -73,13 +89,16 @@ Idioma: {lang}'''
             if isinstance(cached, dict):
                 return cached
             try:
-                return json.loads(cached)
+                parsed = self._parse_json_response(cached)
+                if parsed is not None:
+                    return parsed
             except (json.JSONDecodeError, TypeError):
-                return {'tema': cached[:100], 'palabras_clave': [], 'angulo_editorial': '', 'paises_implicados': []}
+                pass
+            return {'tema': cached[:100], 'palabras_clave': [], 'angulo_editorial': '', 'paises_implicados': []}
         result = self._query(prompt)
         try:
-            parsed = json.loads(result)
-            if isinstance(parsed, dict):
+            parsed = self._parse_json_response(result)
+            if parsed is not None:
                 self._save_cache(prompt, result)
                 return parsed
         except (json.JSONDecodeError, TypeError):
