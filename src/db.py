@@ -1,5 +1,6 @@
 import sqlite3
 import json
+import difflib
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -29,7 +30,8 @@ def init_db():
             embedding BLOB,
             cluster_id INTEGER,
             is_synced INTEGER DEFAULT 0,
-            sync_group TEXT
+            sync_group TEXT,
+            summary TEXT
         );
 
         CREATE TABLE IF NOT EXISTS word_frequencies (
@@ -106,22 +108,48 @@ def init_db():
         conn.execute("ALTER TABLE sync_events ADD COLUMN countries TEXT DEFAULT '[]'")
     except Exception:
         pass
+    try:
+        conn.execute("ALTER TABLE articles ADD COLUMN summary TEXT")
+    except Exception:
+        pass
     conn.close()
 
 
-def save_articles(articles):
+def _title_ratio(a, b):
+    return difflib.SequenceMatcher(None, a.lower(), b.lower()).ratio()
+
+
+def save_articles(articles, dedup_threshold=0.85, dedup_days=2):
     conn = get_conn()
     inserted = 0
+    recent = []
+    try:
+        cutoff = (datetime.utcnow() - timedelta(days=dedup_days)).isoformat()
+        recent = [r["title"] for r in conn.execute(
+            "SELECT title FROM articles WHERE fetched >= ?", (cutoff,)
+        ).fetchall()]
+    except Exception:
+        pass
+
     for a in articles:
         try:
+            title = a["title"]
+            skip = False
+            for rt in recent:
+                if _title_ratio(title, rt) >= dedup_threshold:
+                    skip = True
+                    break
+            if skip:
+                continue
             conn.execute(
                 """INSERT OR IGNORE INTO articles
-                   (title, url, source, country, lang, published)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
-                (a["title"], a["url"], a["source"], a["country"], a["lang"], a.get("published"))
+                   (title, url, source, country, lang, published, summary)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (title, a["url"], a["source"], a["country"], a["lang"], a.get("published"), a.get("summary"))
             )
             if conn.total_changes > 0:
                 inserted += 1
+                recent.append(title)
         except Exception:
             pass
     conn.commit()
@@ -144,7 +172,7 @@ def get_articles_needing_embeddings(days=7):
     conn = get_conn()
     cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
     rows = conn.execute(
-        "SELECT id, title FROM articles WHERE fetched >= ? AND embedding IS NULL ORDER BY published DESC",
+        "SELECT id, title, summary FROM articles WHERE fetched >= ? AND embedding IS NULL ORDER BY published DESC",
         (cutoff,)
     ).fetchall()
     conn.close()

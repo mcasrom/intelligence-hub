@@ -28,6 +28,48 @@ def detect_country(url):
     return "internacional"
 
 
+def _parse_date(entry):
+    for key in ("published_parsed", "updated_parsed"):
+        t = entry.get(key)
+        if t:
+            try:
+                return datetime(*t[:6]).isoformat()
+            except Exception:
+                pass
+    raw = entry.get("published") or entry.get("updated")
+    if raw:
+        try:
+            reparsed = feedparser.parse(raw).entries[0].get("published_parsed")
+            if reparsed:
+                return datetime(*reparsed[:6]).isoformat()
+        except Exception:
+            pass
+    return datetime.utcnow().isoformat()
+
+
+def _extract_summary(entry, max_chars=400):
+    summary = ""
+    for key in ("summary", "description"):
+        if entry.get(key):
+            summary = entry[key]
+            break
+    if not summary and entry.get("content"):
+        try:
+            summary = entry["content"][0].get("value", "")
+        except Exception:
+            pass
+    if summary:
+        try:
+            import html
+            summary = html.unescape(summary)
+        except Exception:
+            pass
+        import re
+        summary = re.sub(r"<[^>]+>", " ", summary)
+        summary = re.sub(r"\s+", " ", summary).strip()
+    return summary[:max_chars]
+
+
 def process_feed(source_name, source_url, lang, timeout=15):
     status = {"name": source_name, "url": source_url, "lang": lang, "ok": False, "articles": 0, "error": None}
     try:
@@ -57,7 +99,8 @@ def process_feed(source_name, source_url, lang, timeout=15):
             "source": source_name,
             "country": detect_country(entry.get("link", "")),
             "lang": lang,
-            "published": entry.get("published") or entry.get("updated") or datetime.utcnow().isoformat(),
+            "published": _parse_date(entry),
+            "summary": _extract_summary(entry),
         }
         if article["title"] and article["url"]:
             articles.append(article)

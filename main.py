@@ -62,6 +62,14 @@ def load_config():
         return yaml.safe_load(f)
 
 
+def _embed_text(a):
+    title = (a.get('title') or '').strip()
+    summary = (a.get('summary') or '').strip()
+    if summary:
+        return f'{title}\n{summary}'
+    return title
+
+
 def main(fast=False):
     run_id = uuid.uuid4().hex[:12]
     start_time = datetime.now(timezone.utc)
@@ -165,7 +173,7 @@ def main(fast=False):
     print(f'[*] Embeddings en caché: {cached_count} | Pendientes: {len(articles_to_embed)}')
 
     if articles_to_embed:
-        new_titles = [a['title'] for a in articles_to_embed]
+        new_titles = [_embed_text(a) for a in articles_to_embed]
         print(f'[*] Generando {len(new_titles)} embeddings nuevos...')
         try:
             new_embeddings = embedder.embed(new_titles)
@@ -204,7 +212,7 @@ def main(fast=False):
             conn.execute('UPDATE articles SET embedding = NULL WHERE fetched >= ?',
                          ((datetime.now(timezone.utc) - timedelta(days=config.get('clustering', {}).get('window_days', 7))).isoformat(),))
             conn.commit()
-            titles = [a['title'] for a in db_articles]
+            titles = [_embed_text(a) for a in db_articles]
             embeddings = embedder.embed(titles)
             for art, emb in zip(db_articles, embeddings):
                 conn.execute('UPDATE articles SET embedding = ? WHERE id = ?', (json.dumps(emb), art['id']))
@@ -214,7 +222,7 @@ def main(fast=False):
             missing = sum(1 for e in embeddings if e is None)
             if missing:
                 print(f'  [WARN] {missing} artículos sin embedding, forzando regenerate')
-                titles = [a['title'] for a in db_articles]
+                titles = [_embed_text(a) for a in db_articles]
                 embeddings = embedder.embed(titles)
     finally:
         conn.close()
