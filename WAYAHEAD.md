@@ -112,3 +112,8 @@
 - Feat: PWA instalable en móviles + service worker
 - Feat: funnel guide modal interactivo
 - Feat: diagnóstico de fuentes en dashboard
+
+## OPERACIONES — Infraestructura (31 Jul 2026)
+- **Fuente de verdad unica**: GitHub `mcasrom/intelligence-hub`. El servidor `deploy@178.105.80.193` ejecuta el pipeline (cron `0,6,12,18 UTC` con `run.sh`, healthcheck cada 30 min) y ahora puede **pushear directo** con la deploy key write `~/.ssh/ih-deploy-key` (host alias `github.com-ih`).
+- Flujo: editar en el servidor → `git add -A && git commit && git push origin main`. Sin clones de desktop ni patches. La vieja `ikm-deploy-key` (`github.com-ikm`) queda como read-only backup de `mcasrom/ikm`.
+- El resumen/estado de sesion vive en `~/org/260731_wayahead.org` del desktop y tambien se versiona aqui.
