@@ -1,6 +1,8 @@
 import feedparser
 import requests
+import time
 from datetime import datetime
+from urllib.parse import urlparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from src.rotation import RateLimiter, FeedCache
 from src.db import update_feed_health
@@ -18,12 +20,20 @@ COUNTRIES = {
     "folha.uol.com.br": "brasil", "oglobo.globo.com": "brasil",
     "g1.globo.com": "brasil",
     "lanacion.com.ar": "argentina", "elcohetealaluna.com": "argentina",
+    "aljazeera.com": "qatar", "thenationalnews.com": "emiratos_arabes",
+    "aa.com.tr": "turquia", "al-monitor.com": "internacional",
 }
 
 
 def detect_country(url):
+    try:
+        netloc = urlparse(url).netloc.lower()
+        if netloc.startswith("www."):
+            netloc = netloc[4:]
+    except Exception:
+        return "internacional"
     for domain, country in COUNTRIES.items():
-        if domain in url:
+        if netloc == domain or netloc.endswith("." + domain):
             return country
     return "internacional"
 
@@ -70,24 +80,43 @@ def _extract_summary(entry, max_chars=400):
     return summary[:max_chars]
 
 
-def process_feed(source_name, source_url, lang, timeout=15):
+def process_feed(source_name, source_url, lang, timeout=15, rate_limiter=None):
     status = {"name": source_name, "url": source_url, "lang": lang, "ok": False, "articles": 0, "error": None}
-    try:
-        headers = {
-            "User-Agent": "daily_news/1.0 (+https://github.com/mcasrom/daily_readings)"
-        }
-        resp = requests.get(source_url, headers=headers, timeout=timeout)
-        resp.raise_for_status()
-        feed = feedparser.parse(resp.content)
-    except requests.Timeout:
-        status["error"] = f"timeout (> {timeout}s)"
-        print(f"  [TIMEOUT] {source_name} (> {timeout}s)")
-        update_feed_health(source_name, source_url, False, status["error"])
-        return [], status
-    except Exception as e:
-        error_msg = str(e)[:120]
+    headers = {
+        "User-Agent": "daily_news/1.0 (+https://github.com/mcasrom/daily_readings)"
+    }
+    last_error = None
+    for attempt in range(1, (rate_limiter.max_retries + 2) if rate_limiter else 2):
+        try:
+            resp = requests.get(source_url, headers=headers, timeout=timeout)
+            resp.raise_for_status()
+            feed = feedparser.parse(resp.content)
+            break
+        except requests.Timeout:
+            last_error = f"timeout (> {timeout}s)"
+            status_code = None
+        except requests.HTTPError as e:
+            last_error = str(e)[:120]
+            status_code = e.response.status_code if e.response is not None else None
+        except Exception as e:
+            last_error = str(e)[:120]
+            status_code = None
+
+        if rate_limiter and rate_limiter.should_retry(attempt, status_code):
+            delay = rate_limiter.get_backoff(attempt)
+            print(f"  [RETRY] {source_name} ({last_error}), reintento {attempt} en {delay:.1f}s")
+            time.sleep(delay)
+            continue
+
+        error_msg = last_error
         status["error"] = error_msg
-        print(f"  [ERROR] {source_name}: {e}")
+        print(f"  [ERROR] {source_name}: {error_msg}")
+        update_feed_health(source_name, source_url, False, error_msg)
+        return [], status
+    else:
+        error_msg = last_error
+        status["error"] = error_msg
+        print(f"  [ERROR] {source_name}: {error_msg}")
         update_feed_health(source_name, source_url, False, error_msg)
         return [], status
 
@@ -123,7 +152,7 @@ def _process_feed_wrapper(feed_cfg, country, rate_limiter, feed_cache):
         return cached, {"name": name, "url": url, "lang": lang, "ok": True, "articles": len(cached), "error": None, "cached": True}
 
     rate_limiter.wait_if_needed(url)
-    articles, status = process_feed(name, url, lang)
+    articles, status = process_feed(name, url, lang, rate_limiter=rate_limiter)
 
     if articles:
         feed_cache.set(url, articles)
