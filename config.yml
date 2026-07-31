@@ -141,23 +141,3 @@ sources:
     name: The Guardian
     type: general
     url: https://www.theguardian.com/world/rss
-  qatar:
-  - lang: en
-    name: Al Jazeera
-    type: general
-    url: https://www.aljazeera.com/xml/rss/all.xml
-  emiratos_arabes:
-  - lang: en
-    name: The National
-    type: general
-    url: https://www.thenationalnews.com/arc/outboundfeeds/rss/?outputType=xml
-  turquia:
-  - lang: en
-    name: Anadolu Agency
-    type: general
-    url: https://www.aa.com.tr/en/rss/default?cat=guncel
-  internacional:
-  - lang: en
-    name: Al-Monitor
-    type: general
-    url: https://www.al-monitor.com/feed

@@ -20,8 +20,6 @@ COUNTRIES = {
     "folha.uol.com.br": "brasil", "oglobo.globo.com": "brasil",
     "g1.globo.com": "brasil",
     "lanacion.com.ar": "argentina", "elcohetealaluna.com": "argentina",
-    "aljazeera.com": "qatar", "thenationalnews.com": "emiratos_arabes",
-    "aa.com.tr": "turquia", "al-monitor.com": "internacional",
 }
 
 
