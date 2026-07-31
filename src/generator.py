@@ -206,3 +206,30 @@ def generate_json_data(articles, clusters, sync_events, frequencies, trends, dat
     output_path = OUTPUT_DIR / 'data.json'
     output_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
     print(f'  [OK] JSON data: {output_path}')
+
+
+def generate_health_json(run_id, start_time, total_articles, total_clusters, total_syncs,
+                          feeds_ok, feeds_fail, errors=None, duration=None):
+    _ensure_dirs()
+    now = datetime.now(timezone.utc)
+    critical_errors = [e for e in (errors or []) if "429" not in e and "LLM" not in e]
+    health = {
+        "status": "ok" if not critical_errors else "degraded",
+        "run_id": run_id,
+        "generated_at": now.isoformat(),
+        "pipeline_date": start_time.strftime("%Y-%m-%d"),
+        "pipeline_time": start_time.strftime("%H:%M:%S UTC"),
+        "duration_seconds": round(duration, 1) if duration else None,
+        "total_articles": total_articles,
+        "total_clusters": total_clusters,
+        "total_syncs": total_syncs,
+        "feeds_ok": feeds_ok,
+        "feeds_fail": feeds_fail,
+        "feeds_total": feeds_ok + feeds_fail,
+        "errors": errors or [],
+        "version": "2.0",
+    }
+    output_path = OUTPUT_DIR / "health.json"
+    output_path.write_text(json.dumps(health, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f'  [OK] Health JSON: {output_path}')
+    return health

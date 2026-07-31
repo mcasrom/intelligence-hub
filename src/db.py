@@ -63,6 +63,39 @@ def init_db():
             is_editorial INTEGER DEFAULT 0
         );
 
+        CREATE TABLE IF NOT EXISTS feed_health (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            feed_name TEXT NOT NULL,
+            feed_url TEXT NOT NULL,
+            consecutive_failures INTEGER DEFAULT 0,
+            last_ok TEXT,
+            last_error TEXT,
+            total_errors INTEGER DEFAULT 0,
+            UNIQUE(feed_name)
+        );
+
+        CREATE TABLE IF NOT EXISTS pipeline_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            run_id TEXT NOT NULL,
+            started_at TEXT NOT NULL,
+            finished_at TEXT,
+            duration_seconds REAL,
+            total_articles INTEGER DEFAULT 0,
+            total_clusters INTEGER DEFAULT 0,
+            total_syncs INTEGER DEFAULT 0,
+            feeds_ok INTEGER DEFAULT 0,
+            feeds_fail INTEGER DEFAULT 0,
+            errors TEXT,
+            status TEXT DEFAULT 'running'
+        );
+
+        CREATE TABLE IF NOT EXISTS llm_cache (
+            cache_key TEXT PRIMARY KEY,
+            result TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now')),
+            ttl_days INTEGER DEFAULT 7
+        );
+
         CREATE INDEX IF NOT EXISTS idx_articles_date ON articles(published);
         CREATE INDEX IF NOT EXISTS idx_articles_cluster ON articles(cluster_id);
         CREATE INDEX IF NOT EXISTS idx_word_freq_date ON word_frequencies(date);
@@ -101,6 +134,17 @@ def get_articles_window(days=7):
     cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
     rows = conn.execute(
         "SELECT * FROM articles WHERE fetched >= ? ORDER BY published DESC",
+        (cutoff,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_articles_needing_embeddings(days=7):
+    conn = get_conn()
+    cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
+    rows = conn.execute(
+        "SELECT id, title FROM articles WHERE fetched >= ? AND embedding IS NULL ORDER BY published DESC",
         (cutoff,)
     ).fetchall()
     conn.close()
@@ -204,6 +248,118 @@ def save_sync_event(topic, article_ids, sources, is_editorial=0, countries=None)
     conn.close()
 
 
+def update_feed_health(feed_name, feed_url, ok, error=None):
+    conn = get_conn()
+    existing = conn.execute(
+        "SELECT id, consecutive_failures, total_errors FROM feed_health WHERE feed_name = ?",
+        (feed_name,)
+    ).fetchone()
+    now = datetime.utcnow().isoformat()
+    if existing:
+        if ok:
+            conn.execute(
+                "UPDATE feed_health SET consecutive_failures = 0, last_ok = ?, last_error = NULL WHERE id = ?",
+                (now, existing["id"])
+            )
+        else:
+            conn.execute(
+                "UPDATE feed_health SET consecutive_failures = consecutive_failures + 1, last_error = ?, total_errors = total_errors + 1 WHERE id = ?",
+                (error or "unknown", existing["id"])
+            )
+    else:
+        if ok:
+            conn.execute(
+                "INSERT INTO feed_health (feed_name, feed_url, consecutive_failures, last_ok, total_errors) VALUES (?, ?, 0, ?, 0)",
+                (feed_name, feed_url, now)
+            )
+        else:
+            conn.execute(
+                "INSERT INTO feed_health (feed_name, feed_url, consecutive_failures, last_error, total_errors) VALUES (?, ?, 1, ?, 1)",
+                (feed_name, feed_url, error or "unknown")
+            )
+    conn.commit()
+    conn.close()
+
+
+def get_feeds_in_failure(min_consecutive=2):
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM feed_health WHERE consecutive_failures >= ? ORDER BY consecutive_failures DESC",
+        (min_consecutive,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def start_pipeline_log(run_id, started_at):
+    conn = get_conn()
+    conn.execute(
+        "INSERT INTO pipeline_log (run_id, started_at, status) VALUES (?, ?, 'running')",
+        (run_id, started_at)
+    )
+    conn.commit()
+    conn.close()
+
+
+def finish_pipeline_log(run_id, finished_at, duration, articles, clusters, syncs, feeds_ok, feeds_fail, errors=None):
+    conn = get_conn()
+    conn.execute(
+        """UPDATE pipeline_log SET finished_at = ?, duration_seconds = ?,
+           total_articles = ?, total_clusters = ?, total_syncs = ?,
+           feeds_ok = ?, feeds_fail = ?, errors = ?, status = 'completed'
+           WHERE run_id = ?""",
+        (finished_at, duration, articles, clusters, syncs, feeds_ok, feeds_fail, errors, run_id)
+    )
+    conn.commit()
+    conn.close()
+
+
+def fail_pipeline_log(run_id, errors):
+    conn = get_conn()
+    conn.execute(
+        "UPDATE pipeline_log SET status = 'failed', errors = ? WHERE run_id = ?",
+        (errors, run_id)
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_llm_cache(cache_key, max_age_days=7):
+    conn = get_conn()
+    row = conn.execute(
+        "SELECT result FROM llm_cache WHERE cache_key = ? AND created_at >= datetime('now', ? || ' days')",
+        (cache_key, f'-{max_age_days}')
+    ).fetchone()
+    conn.close()
+    if row:
+        try:
+            return json.loads(row['result'])
+        except Exception:
+            return row['result']
+    return None
+
+
+def set_llm_cache(cache_key, result):
+    conn = get_conn()
+    result_str = json.dumps(result) if not isinstance(result, str) else result
+    conn.execute(
+        "INSERT OR REPLACE INTO llm_cache (cache_key, result, created_at) VALUES (?, ?, datetime('now'))",
+        (cache_key, result_str)
+    )
+    conn.commit()
+    conn.close()
+
+
+def clean_llm_cache(max_age_days=7):
+    conn = get_conn()
+    conn.execute("DELETE FROM llm_cache WHERE created_at < datetime('now', ? || ' days')",
+                 (f'-{max_age_days}',))
+    deleted = conn.total_changes
+    conn.commit()
+    conn.close()
+    return deleted
+
+
 def rotate_articles(days=7):
     conn = get_conn()
     cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
@@ -214,6 +370,7 @@ def rotate_articles(days=7):
     deleted_words = cursor2.rowcount
     cursor3 = conn.execute('DELETE FROM sync_events WHERE last_seen < ?', (cutoff,))
     deleted_syncs = cursor3.rowcount
+    clean_llm_cache(days)
     conn.commit()
     conn.close()
     return deleted_articles, deleted_words, deleted_syncs

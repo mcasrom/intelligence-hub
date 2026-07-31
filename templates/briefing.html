@@ -357,6 +357,7 @@
     <a href="#status">💚 Estado</a>
     <a href="#metodologia">⚙️ Metodología</a>
     <a href="#about">ℹ️ About</a>
+    <span id="pipeline-status" style="margin-left:auto;padding:14px 22px;"></span>
 </nav>
 
 <div class="section" id="stats">
@@ -366,6 +367,11 @@
         <div class="stat-card"><div class="num">{{ sync_events|length }}</div><div class="label">Sincronizadas</div></div>
         <div class="stat-card"><div class="num">{{ by_country|length }}</div><div class="label">Países</div></div>
         <div class="stat-card" id="visit-stat"><div class="num" id="visit-count">···</div><div class="label">Visitas totales</div></div>
+    </div>
+    <div id="health-detail" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px;font-size:0.75em;color:#455a64;">
+        <span>⏱ <span id="health-age">···</span></span>
+        <span>📊 <span id="health-articles">···</span> arts</span>
+        <span>📡 <span id="health-feeds">···</span> feeds</span>
     </div>
 </div>
 
@@ -522,6 +528,9 @@
 {% if stance_data %}
 <details class="section" id="cobertura">
     <summary class="section-title">&#127758; Cobertura por bloque <span class="badge">{{ stance_data|length }} actores</span></summary>
+    <div style="color:#607d8b;font-size:0.85em;margin:-10px 0 18px;border-left:3px solid #1a2a4a;padding-left:14px;">
+        <strong style="color:#78909c;">¿Qué es?</strong> Análisis de cobertura por bloque geopolítico. Cada titular se clasifica vía LLM como <strong>pro</strong>, <strong>contra</strong> o <strong>neutral</strong> respecto al bloque. Datos basados en los artículos recolectados en los últimos <strong>7 días</strong> (ventana deslizante). Las barras muestran la proporción por fuente.
+    </div>
     <div class="stance-grid">
     {% for actor, sources in stance_data.items() %}
         <div class="stance-card">
@@ -708,7 +717,7 @@
         <p>Los titulares se vectorizan mediante <code>TF-IDF char-wb ngrams(2,4)</code> en 500 dimensiones. Se aplica <code>HDBSCAN</code> con <code>min_cluster_size=2</code> para capturar tanto temas principales como pares de noticias relacionadas. Los puntos etiquetados como <code>-1</code> son ruido no agrupado.</p>
 
         <h3>🔗 Detección de sincronizadas</h3>
-        <p>Se calcula la <strong>similitud coseno</strong> entre todos los pares de embeddings. Si la similitud supera el umbral (<code>threshold=0.75</code>), se agrupan como una misma noticia cubierta por múltiples fuentes. Los editoriales se detectan por patrones de texto ("editorial", "opinión", columnistas conocidos).</p>
+        <p>Se calcula la <strong>similitud coseno</strong> entre todos los pares de embeddings. Si la similitud supera el umbral (<code>threshold=0.65</code>), se agrupan como una misma noticia cubierta por múltiples fuentes. Los editoriales se detectan por patrones de texto ("editorial", "opinión", columnistas conocidos).</p>
 
         <h3>📈 Analítica de palabras</h3>
         <p>Extracción de palabras clave por título filtrando stopwords multilingüe (ES, EN, FR, IT, PT, DE). Se computan ventanas de <strong>3, 5 y 7 días</strong> para identificar términos persistentes. Los <strong>trending terms</strong> se calculan como ratio entre ventanas para detectar palabras en ascenso.</p>
@@ -902,6 +911,31 @@ fetch(COUNTER_URL + '?visit=1', { mode: 'cors' })
     .then(r => r.json())
     .then(d => { document.getElementById('visit-count').textContent = d.count; })
     .catch(() => { document.getElementById('visit-count').textContent = '---'; });
+
+// Pipeline health status
+fetch('/health.json?t=' + Date.now(), { mode: 'cors', cache: 'no-cache' })
+    .then(r => r.json())
+    .then(h => {
+        const el = document.getElementById('pipeline-status');
+        if (!el) return;
+        const age = (Date.now() - new Date(h.generated_at).getTime()) / 1000;
+        const ageOk = age < 21600; // 6h
+        el.innerHTML =
+            '<span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:12px;font-size:0.8em;' +
+            (h.status === 'ok' && ageOk
+                ? 'background:#1b3a2a;color:#69f0ae;" title="Última ejecución: hace ' + Math.round(age/60) + 'min">● OK'
+                : 'background:#3a1b1b;color:#ff5252;" title="Última ejecución: hace ' + Math.round(age/60) + 'min">● ' + h.status) +
+            '</span>';
+        if (document.getElementById('health-age')) {
+            document.getElementById('health-age').textContent = Math.round(age/60) + 'min';
+            document.getElementById('health-articles').textContent = h.total_articles || '?';
+            document.getElementById('health-feeds').textContent = (h.feeds_ok || 0) + '/' + (h.feeds_total || 0);
+        }
+    })
+    .catch(() => {
+        const el = document.getElementById('pipeline-status');
+        if (el) el.innerHTML = '<span style="color:#455a64;font-size:0.8em;">⋯ sin señal</span>';
+    });
 
 // ── KPI Chart ──
 (function() {
