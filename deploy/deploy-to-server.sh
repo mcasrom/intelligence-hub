@@ -65,7 +65,7 @@ echo "[4/4] Verificando SSL..."
 CERT_EXISTS=$(ssh "$SERVER" "sudo certbot certificates 2>/dev/null | grep -c '$DOMAIN' || true")
 if [ "$CERT_EXISTS" -eq 0 ]; then
     echo "  Solicitando certificado SSL para $DOMAIN..."
-    ssh "$SERVER" "sudo certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email news@viajeinteligencia.com || echo '  ⚠️  DNS debe apuntar primero. Ejecuta manual: sudo certbot --nginx -d $DOMAIN'"
+    ssh "$SERVER" "sudo certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email nearme@viajeinteligencia.com || echo '  ⚠️  DNS debe apuntar primero. Ejecuta manual: sudo certbot --nginx -d $DOMAIN'"
 else
     echo "  ✅ SSL ya configurado para $DOMAIN"
 fi
