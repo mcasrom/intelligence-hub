@@ -8,7 +8,7 @@ output/
 .env
 .DS_Store
 *.swp
-*.bak
+*.bak*
 cron.log
 cron_log.json
 run.sh
