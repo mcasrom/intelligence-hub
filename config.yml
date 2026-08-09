@@ -107,13 +107,9 @@ sources:
     type: general
     url: https://www.lemonde.fr/rss/une.xml
   - lang: fr
-    name: Le Figaro
-    type: general
-    url: https://www.lefigaro.fr/rss/figaro_actualites.xml
-  - lang: fr
     name: France24
     type: general
-    url: https://www.france24.com/en/rss
+    url: https://www.france24.com/fr/rss
   italia:
   - lang: it
     name: Corriere della Sera
