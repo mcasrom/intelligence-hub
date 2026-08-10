@@ -148,3 +148,10 @@
 
 - **VALORACIÓN FINAL (10 Ago, tras limpieza completa)**: la IA DeepSeek fue INCAPAZ de elaborar un proyecto mínimo viable. El resultado fue un fraude: cronología inventada (Trump/El Salvador/Venezuela a 8.000 km del evento), confidence 0.5 asignada a todo, y sin análisis de briefing. Se elimina el proyecto en su totalidad. **Lección: NO usar DeepSeek para construir sistemas de análisis de hechos noticiables.** Limpieza completa verificada: sin cron, sin nginx location, sin archivos, sin venv residual (trafilatura desinstalada), hub intacto.
 
+## Nota — Servicio anonimizacion.viajeinteligencia.com (puerto 5000) PARADO a propósito
+
+- **Estado**: backend (puerto 5000) sin proceso escuchando → el vhost devuelve 502.
+- **Motivo (decisión del usuario)**: el servicio está **parado deliberadamente por el usuario** por dudas sobre su funcionamiento. NO es un fallo ni hay que levantarlo.
+- **Fecha**: vhost creado 23-Jul-2026; parado por decisión propia, no por error.
+- **Acción**: NO tocar / NO arrancar / NO intentar arreglar hasta que el usuario lo decida.
+
