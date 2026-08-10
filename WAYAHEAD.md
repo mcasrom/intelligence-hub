@@ -155,3 +155,13 @@
 - **Fecha**: vhost creado 23-Jul-2026; parado por decisión propia, no por error.
 - **Acción**: NO tocar / NO arrancar / NO intentar arreglar hasta que el usuario lo decida.
 
+## Sprint — Plan 30 días fase 1-3 + demos (10 Ago 2026, cierre)
+
+- **Fase 1 · Country**: copy sin "OSINT" (home + 217 fichas) + 3 artículos comparativos (España-Marruecos-Portugal, Top 10 seguros, países baratos) + sitemap 222 URLs + IndexNow.
+- **Fase 2 · NearMe**: 2 landing pages `/incendios` (NASA FIRMS) y `/trafico` (DGT) + sitemap 6 URLs + IndexNow.
+- **Fase 3 · MyIP**: 2 posts `/fuga-dns` y `/vpn-check` + rutas server + sitemap 4 URLs + IndexNow + fix pantalla en blanco PWA (dist roto, SW v4).
+- **Pack de posts RRSS**: `pack_posts_2026.md` (X, Reddit, Bluesky, Mastodon) para las 3 estrellas.
+- **Demos**: `~/Desktop/demo/` (laptop) — 4 screenshots + 3 videos MP4 (nearme timeline con 502 eventos, myip guía vpn-check scroll, country zoom). Nota: el análisis real de myip (progreso VPN/DNS) no arranca en headless (queda en 0%, requiere flujo/auth); el video usa la guía /vpn-check.
+- **Hito**: landing en v1.0.4 (campaña SEO documentada en CHANGELOG).
+- **Pendiente fase 4**: distribución real (X/Reddit/Bluesky/Mastodon con las plantillas + capturas/videos).
+
