@@ -165,3 +165,9 @@
 - **Hito**: landing en v1.0.4 (campaña SEO documentada en CHANGELOG).
 - **Pendiente fase 4**: distribución real (X/Reddit/Bluesky/Mastodon con las plantillas + capturas/videos).
 
+## Decisión — Estrategia de distribución RRSS (10 Ago 2026)
+
+- **Canales activos**: X, Mastodon y Bluesky (publicando con el pack `pack_posts_2026.md` + números vivos de cada página).
+- **Reddit descartado** por decisión del usuario: comunidad paranoica, alto coste de esfuerzo y bajo retorno para este ecosistema. No se publicará allí de forma sistemática.
+- **Dato de interés**: el post `/trafico` de NearMe generó 48 hits reales (2 IPs externas) en su primer día — la keyword "tráfico DGT" tiene demanda. El plan SEO sigue su curso; la distribución activa acelera el resto.
+
