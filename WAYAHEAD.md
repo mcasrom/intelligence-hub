@@ -127,3 +127,14 @@
 - **Recursos**: 0 proceso residente (cron + CLI), MiniLM on-demand (se libera tras dedup), RAM estable (sin crecimiento de swap). Nginx: location `/evento/` en vhost landing.
 - **Commit**: `94a0028`. Coste ~0 (Groq + trafilatura, todo gratuito).
 
+## Sprint 11b — Event Dossier: fix de calidad (10 Ago 2026)
+
+- **Bug detectado**: la cronología incluía entradas totalmente ajenas (festival de Arlés, ovnis de los 70, historia de Bukele en El Salvador, casa-museo de Gainsbourg). Causa: (1) el filtro de artículos matcheaba keywords en la descripción completa del RSS (no solo título), y (2) el LLM extraía cronología de artículos tangenciales que solo mencionaban el evento de pasada o comparaciones históricas.
+- **Fixes**:
+  - `fulltext_fetcher.extract_links` ahora exige ≥1 keyword en el TÍTULO (no solo descripción).
+  - `pipeline.py`: filtro DURO post-LLM — toda entrada de cronología debe mencionar ≥1 keyword del evento; si no, se descarta.
+  - `event_analyzer.EXTRACT_SYSTEM`: instrucciones explícitas de ignorar contexto/comparaciones históricas/temas tangenciales.
+  - Límite de artículos por ciclo: 10 → 5 (preservar cuota diaria de Groq).
+- **Limpieza de BD**: borradas 34 entradas espurias (queda 23, todas sobre migración/Ceuta/frontera).
+- **⚠️ Cuota Groq**: límite 100k TPD alcanzado (99.2k usados) → respuestas vacías/429. El pipeline salta la síntesis con try/except; la cuota se restablece ~1h después. Considerar límite por ciclo más bajo o modelo más barato.
+- **Commit**: `58364cd`.
