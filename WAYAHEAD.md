@@ -138,3 +138,11 @@
 - **Limpieza de BD**: borradas 34 entradas espurias (queda 23, todas sobre migración/Ceuta/frontera).
 - **⚠️ Cuota Groq**: límite 100k TPD alcanzado (99.2k usados) → respuestas vacías/429. El pipeline salta la síntesis con try/except; la cuota se restablece ~1h después. Considerar límite por ciclo más bajo o modelo más barato.
 - **Commit**: `58364cd`.
+## Sprint 11c — Event Dossier Engine: PROYECTO CANCELADO (10 Ago 2026)
+
+- **Veredicto del usuario: FRAUDE / basura / proyecto cancelado.** El módulo `event-dossier` se retira por completo.
+- **Razones**: el pipeline automático LLM-sobre-feeds-RSS produce cronología sucia — el LLM inventa/rellena entradas ajenas al evento (comparaciones históricas tipo Trump/El Salvador, cine, cultura) y asigna confidence 0.5 a todo ("⚠️ sin confirmar" en cada línea). No sirve como dossier de inteligencia para analistas.
+- **Lección**: una cronología de un hecho serio necesita fuentes primarias verificadas y selección editorial, NO un LLM escupiendo feeds internacionales. La automatización de análisis de hechos noticiables requiere curaduría humana de la línea base + LLM solo para redactar sobre datos ya verificados.
+- **Limpieza completa**: cron eliminado, location nginx /evento/ eliminado, /var/www/.../evento/ borrado, /home/deploy/event-dossier borrado, repo GitHub mcasrom/event-dossier borrado, página 404.
+- **Estado**: no queda rastro del módulo. Coste incurrido: solo cuota de Groq (gratuita) + tiempo.
+
