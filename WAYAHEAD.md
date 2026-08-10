@@ -171,3 +171,14 @@
 - **Reddit descartado** por decisión del usuario: comunidad paranoica, alto coste de esfuerzo y bajo retorno para este ecosistema. No se publicará allí de forma sistemática.
 - **Dato de interés**: el post `/trafico` de NearMe generó 48 hits reales (2 IPs externas) en su primer día — la keyword "tráfico DGT" tiene demanda. El plan SEO sigue su curso; la distribución activa acelera el resto.
 
+## Sprint — Video del Radar fail2ban para YouTube (10 Ago 2026)
+
+- **Objetivo**: extraer el "video" del radar de myip (294 snapshots de ataques fail2ban) para subirlo a YouTube sin tocar el radar.
+- **Cómo**: los 294 snapshots JSON (`/app/data/snapshots/`) se leen vía `/api/threat/timeline`; el radar los reproduce con un slider `onChange` de React. Truco usado: **native setter** de `HTMLInputElement.value` + dispatch input/change para que React re-renderice el mapa en cada snapshot (verificado: contador 1→294, frames todos distintos, el mapa evoluciona).
+- **Radar intacto**: solo lectura vía API, no se modificó nada del server.
+- **Output en la laptop** `~/Desktop/demo/`:
+  - `radar-fail2ban.mp4` (10s, recorrido del slider)
+  - `radar-fail2ban-youtube.mp4` (58.8s, 294 snapshots, overlay con ffmpeg drawtext: título "ATAQUES BLOQUEADOS EN TIEMPO REAL", subtítulo, rango "29 Jul → 10 Ago 2026", marca viajeinteligencia.com)
+- **Veredicto usuario**: "es perfecto, no necesitamos nada más".
+- **Hito**: landing sigue en v1.0.4 (el video no tocó el server).
+
