@@ -146,3 +146,5 @@
 - **Limpieza completa**: cron eliminado, location nginx /evento/ eliminado, /var/www/.../evento/ borrado, /home/deploy/event-dossier borrado, repo GitHub mcasrom/event-dossier borrado, página 404.
 - **Estado**: no queda rastro del módulo. Coste incurrido: solo cuota de Groq (gratuita) + tiempo.
 
+- **VALORACIÓN FINAL (10 Ago, tras limpieza completa)**: la IA DeepSeek fue INCAPAZ de elaborar un proyecto mínimo viable. El resultado fue un fraude: cronología inventada (Trump/El Salvador/Venezuela a 8.000 km del evento), confidence 0.5 asignada a todo, y sin análisis de briefing. Se elimina el proyecto en su totalidad. **Lección: NO usar DeepSeek para construir sistemas de análisis de hechos noticiables.** Limpieza completa verificada: sin cron, sin nginx location, sin archivos, sin venv residual (trafilatura desinstalada), hub intacto.
+
