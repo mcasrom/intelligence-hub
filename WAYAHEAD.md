@@ -117,3 +117,13 @@
 - **Fuente de verdad unica**: GitHub `mcasrom/intelligence-hub`. El servidor `deploy@178.105.80.193` ejecuta el pipeline (cron `0,6,12,18 UTC` con `run.sh`, healthcheck cada 30 min) y ahora puede **pushear directo** con la deploy key write `~/.ssh/ih-deploy-key` (host alias `github.com-ih`).
 - Flujo: editar en el servidor → `git add -A && git commit && git push origin main`. Sin clones de desktop ni patches. La vieja `ikm-deploy-key` (`github.com-ikm`) queda como read-only backup de `mcasrom/ikm`.
 - El resumen/estado de sesion vive en `~/org/260731_wayahead.org` del desktop y tambien se versiona aqui.
+## Sprint 11 — Event Dossier Engine (MVP, caso Ceuta) (10 Ago 2026)
+
+- **Nuevo módulo `/home/deploy/event-dossier`** (repo `mcasrom/event-dossier`): servicio satélite del Intelligence Hub que abre dossiers vivos de hechos noticiable persistentes.
+- **Máquina de estados**: CANDIDATO→ACTIVO→EN_ENFRIAMIENTO→CERRADO→ARCHIVADO (+REABIERTO con capítulos), DESCARTADO. CLI `event_dossier.py open/close/status/reactivate`.
+- **DB SQLite** `data/events.db`: events, event_chronology, event_actors, event_sources, event_synthesis + event_fulltext_cache.
+- **Pipeline** `pipeline.py` (cron `20 */6 * * *`): lee los 8 feeds del hub por keywords → trafilatura fulltext → LLM Groq (llama-3.3-70b) extracción estructurada (§8.1) → dedup MiniLM on-demand → merge → síntesis periódica (§8.2) → render Jinja2 → `/evento/<slug>.html`.
+- **Caso Ceuta en vivo**: `ceuta-valla-2026` ACTIVO — 31 entradas cronología, 61 actores, 10 fuentes, síntesis generada. Página: `https://viajeinteligencia.com/evento/ceuta-valla-2026.html` (tabs Resumen/Cronología/Actores/Estado/Fuentes, badge 🔴 En seguimiento, disclaimer metodología).
+- **Recursos**: 0 proceso residente (cron + CLI), MiniLM on-demand (se libera tras dedup), RAM estable (sin crecimiento de swap). Nginx: location `/evento/` en vhost landing.
+- **Commit**: `94a0028`. Coste ~0 (Groq + trafilatura, todo gratuito).
+
