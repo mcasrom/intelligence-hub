@@ -202,3 +202,15 @@
 - **Commits**: `53d5e62`, `6e12df8`. Ecosistema verificado intacto.
 - **Nota rendimiento**: radio 500 = 748 marcadores (posible clustering si se nota lag).
 
+## Sprint — Radar de Emergencias: fixes completos (11 Ago 2026)
+
+- **5 bugs resueltos** (commits `117d0c1` → `50d8c53`):
+  1. **Clic bloqueado por el layer CCAA**: el mapa territorial con `bindPopup` interceptaba el clic y abría su popup ("Castilla-La Mancha: críticas 0...") en vez de seleccionar. Fix: `interactive: false` en el layer CCAA → el clic ahora dibuja el punto con radio.
+  2. **Punto de selección no se veía**: el marcador ámbar solo se creaba en clic de mapa. Movido a `setPos()` → visible en clic de mapa, clic de marcador y "Mi ubicación".
+  3. **Radio 200 y 500 daban los mismos datos**: el API filtra por radio pero con `limit=500` fijo devolvía los 500 más cercanos. Fix: limit crece con el radio (50→800, 200→1500, 500→3000). Verificado: 200=154 marcadores, 500=748.
+  4. **Incendios no se veían**: al filtrar solo critical/alert/warning, los fuegos de NASA FIRMS (nivel info) desaparecían. Fix: incluir `fire`/`earthquake` siempre.
+  5. **Tiles lentos**: OSM → Carto dark (coherente con myip/country).
+- **Estado**: radar funcional — clic selecciona con radio, 50/200/500 varían, incendios/sismos visibles.
+- **Seguro de vida**: backup `index.html.bak-20260811` local + push a GitHub.
+- **PRÓXIMO SPRINT (12 Ago)**: valorar las visitas de HOY al ecosistema (analytics/logs) tras los fixes + el pico del eclipse.
+
