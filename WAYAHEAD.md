@@ -182,3 +182,13 @@
 - **Veredicto usuario**: "es perfecto, no necesitamos nada más".
 - **Hito**: landing sigue en v1.0.4 (el video no tocó el server).
 
+## Sprint — Radar: selección por clic + tiles Carto (11 Ago 2026)
+
+- **Problema reportado**: la selección en el mapa del radar era "lenta o nula" + warnings `mozPressure/mozInputSource` (avisos estándar de Leaflet 1.9.4 con Firefox, inofensivos).
+- **Causa real**: el radar NO tenía handler de clic — la zona solo se seleccionaba con botones de radio (50/200/500 km) o geolocalización. Hacer clic en el mapa no hacía nada.
+- **Fix** (commit `117d0c1`):
+  - `map.on(click)` → `setPos(lat, lon, Zona seleccionada)` + marcador temporal ámbar en el punto clicado.
+  - Tiles: `tile.openstreetmap.org` → `basemaps.cartocdn.com/dark_all` (más rápidos, estilo oscuro coherente con myip/country).
+- **Verificado** con puppeteer: clic cambia currentLat/Lon (40.42→39.01), label "Zona seleccionada", eventos recargados (25→15), 0 errores JS.
+- **Seguro de vida**: backup index.html antes de editar. Ecosistema intacto.
+
