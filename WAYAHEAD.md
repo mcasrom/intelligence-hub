@@ -192,3 +192,13 @@
 - **Verificado** con puppeteer: clic cambia currentLat/Lon (40.42→39.01), label "Zona seleccionada", eventos recargados (25→15), 0 errores JS.
 - **Seguro de vida**: backup index.html antes de editar. Ecosistema intacto.
 
+## Sprint — Radar: fix radio + selección clic + incendios (11 Ago 2026)
+
+- **Radio 200 vs 500 daban los MISMO datos** (0/8/9/1). Causa: el API respeta el radio, pero con `limit=500` fijo, ambos radios devolvían los mismos 500 eventos MÁS CERCANOS (los del centro de Madrid).
+- **Fix**: `load()` ahora usa `limit` según radio (50→800, 200→1500, 500→3000). Verificado: radio 200 = 154 marcadores (6 críticas, 26 incendios); radio 500 = 748 (34 críticas, 369 incendios). El radio se nota.
+- **Incendios no se veían**: al cambiar el filtro a solo critical/alert/warning, los fuegos de NASA FIRMS (nivel info) desaparecían. Fix: filtrar critical/alert/warning + **siempre fire/earthquake**.
+- **Selección por clic** (2 fixes previos): `map.on(click)` + `m.on(click)` en marcadores (antes los marcadores con z-index alto tapaban el mapa y el clic no disparaba).
+- **Tiles Carto** (rápidos, dark, coherentes con myip/country).
+- **Commits**: `53d5e62`, `6e12df8`. Ecosistema verificado intacto.
+- **Nota rendimiento**: radio 500 = 748 marcadores (posible clustering si se nota lag).
+
