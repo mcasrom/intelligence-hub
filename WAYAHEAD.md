@@ -214,3 +214,14 @@
 - **Seguro de vida**: backup `index.html.bak-20260811` local + push a GitHub.
 - **PRÓXIMO SPRINT (12 Ago)**: valorar las visitas de HOY al ecosistema (analytics/logs) tras los fixes + el pico del eclipse.
 
+## Sprint — VI Intelligence Agent (MVP) (11 Ago 2026)
+
+- **Nuevo microservicio `vi-agent`** (repo `mcasrom/vi-agent`, commit `46bf827`): capa de inteligencia sobre los microservicios existentes. El usuario pregunta en lenguaje natural y el agente decide qué herramientas usar.
+- **5 herramientas REST reales** (reutilizan APIs existentes): get_country (Country, 44 indicadores), get_incidents (NearMe por coords), geocode (Nominatim), get_sky (Eclipse), get_news (Intel Hub).
+- **Agente**: LLM externo Groq (llama-3.3-70b), sin LLM local, sin shell. Límites estrictos: máx 4 iteraciones, 6 llamadas tool, timeouts, rate limit 20/min/IP, cache SQLite con TTL por categoría.
+- **Web mínima**: `https://www.viajeinteligencia.com/agente/` (path de la landing, sin DNS nuevo) — input + respuesta + fuentes.
+- **Correcciones clave durante el desarrollo**: (1) el LLM no respondía JSON puro → parseToolCall robusto (primer JSON válido, no greedy); (2) prompt estricto con parámetros exactos de cada tool; (3) separación [DATO]/[INFERENCIA] con fuente.
+- **Verificado**: "Australia en abril" → informe con datos reales (población 27M, IDH, esperanza de vida) y [INFERENCIA] honesta; "Murcia ahora" → geocode + 31 incidentes (calidad aire PM10, UV 8, ola de calor). Ecosistema intacto.
+- **Consumo**: 68MB PM2, carga ~0. Coste LLM ~0 (Groq).
+- **PM2**: `vi-agent` (puerto 3320). **Seguro de vida**: repo GitHub.
+
