@@ -225,3 +225,16 @@
 - **Consumo**: 68MB PM2, carga ~0. Coste LLM ~0 (Groq).
 - **PM2**: `vi-agent` (puerto 3320). **Seguro de vida**: repo GitHub.
 
+## Sprint — SEO del VI Agent + CTA + footer (11 Ago 2026)
+
+- **2 artículos SEO** en la landing (commit `975a6c6`):
+  - `/agente-inteligencia-viaje` — "Agente de inteligencia de viaje gratis" con demo interactiva integrada (fetch al agente real).
+  - `/que-pasa-en-tu-ciudad-ahora` — keyword local con tabla de fuentes + 2 CTAs.
+- **CTA hero** "🧠 Pregúntale al agente" (verde, primero).
+- **Footer**: enlaces al agente, artículos, contacto, ecosistema.
+- **Sitemap**: 13 → 16 URLs. IndexNow 200.
+- **Nginx**: locations para las URLs limpias de los 2 artículos.
+- **Hito**: v1.1.1.
+- **Seguro de vida**: backups index.html + sitemap antes de editar. Ecosistema verificado 200.
+- **Próximo**: valorar visitas del 12-Ago (eclipse) + medir uso real del agente.
+
