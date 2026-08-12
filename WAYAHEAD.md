@@ -248,3 +248,9 @@
 - **Hito**: v1.1.3.
 - **Próximo sprint (pendiente)**: bot más potente — menú con botones (inline keyboards), comandos rápidos, y mejorar UX.
 
+## Sprint — Fix noticias Country + menú del bot (12 Ago 2026)
+
+- **Fix noticias de Country** (commit `0a0f4b7`): para países sin `news_query` mapeado, usaba el código ISO (2 letras) como búsqueda → "SY" coincidía con Sydney/Symphony/eventos deportivos. Fix: usar el nombre real del país de geo.json ("Syrian Arab Republic"). Verificado: Siria y Mozambique devuelven noticias relevantes.
+- **Bot Telegram — menú** (commit `b3a43de`): inline keyboard con botones (Riesgo país, Qué pasa en mi ciudad, Comparar destinos, Incendios cerca, /clear, /help). Los botones disparan preguntas de ejemplo al agente. Callbacks manejados.
+- **Nota**: foto de perfil del bot subida por el usuario vía @BotFather.
+
