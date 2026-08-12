@@ -283,3 +283,11 @@
 - **Consumo**: server 2.3G libres, estable.
 - **El agente orquesta 6 microservicios**: Country, NearMe, Eclipse, News, MigrationFlow, Radar.
 
+## Sprint — MyIP: fix rate-limit + historial (12 Ago 2026)
+
+- **Rate-limit**: guest 3→10 escaneos, usuario libre 1/24h→3/24h (8h), fingerprint 3→10/7d. Antes el análisis se bloqueaba rápido.
+- **Historial**: el ScanHistoryDashboard estaba dentro de `scanResult &&` — solo aparecía tras un análisis exitoso. Movido a bloque propio (visible con sesión siempre).
+- **Bug asset**: el build generó `index-CalyEIeN.js` pero el contenedor tenía el viejo → la app no cargaba. Copiado el asset correcto.
+- **Registro**: confirmado OK (9 usuarios reales, DB con 321 escaneos).
+- **Commit**: `45282fb`.
+
