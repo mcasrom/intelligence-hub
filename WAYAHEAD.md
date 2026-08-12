@@ -322,3 +322,10 @@
 - **Key Gemini descartada**: la `AQ.Ab...` de myip solo sirve para embeddings, no para chat (404 "no longer available"). No es viable como fallback de chat.
 - **Verificado**: consulta simple con mini responde con dossier estructurado + datos reales.
 
+## Decisión — Agente: opción B (fallback sin cuota) (12 Ago 2026)
+
+- **Decisión del usuario**: no pagar Groq (opción A descartada). El agente usa la cuota free (15-30 min/día) y el resto del tiempo el **fallback determinista mejorado**.
+- **Fix del fallback**: ya no dice "Sin datos de país" ni "modo sin conexión" — muestra los datos reales disponibles (incidentes PM10, UV, calidad del aire, país si aplica). Commit `3969ba0`.
+- **Estado final del agente**: 9 tools · dossier con datos verificados · fallback determinista que nunca deja sin respuesta · modelo dual (mini para simples) · cache persistente.
+- **Siguiente**: valorar si el agente genera suficiente tráfico para justificar la opción A (pago) en el futuro.
+
