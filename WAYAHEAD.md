@@ -254,3 +254,11 @@
 - **Bot Telegram — menú** (commit `b3a43de`): inline keyboard con botones (Riesgo país, Qué pasa en mi ciudad, Comparar destinos, Incendios cerca, /clear, /help). Los botones disparan preguntas de ejemplo al agente. Callbacks manejados.
 - **Nota**: foto de perfil del bot subida por el usuario vía @BotFather.
 
+## Sprint — Country datos: +29 monedas (12 Ago 2026)
+
+- **Problema**: 29 países/territorios sin moneda (13%). Causa: el colector worldbank no procesa territorios; el enrich tenía moneda solo para 188.
+- **Fix**: añadidas 29 monedas reales al enrich.json (XPF, GIP, HKD, EUR, USD, DKK...) + insertadas en DB + JSON regenerados (217). **Moneda ahora 217/217**.
+- **Inflación (41) e internet (33) sin dato**: territorios y países en conflicto (KP, YE, SY, SO, VE) sin fuente fiable del World Bank — se dejan "n/d" honesto con la nota.
+- **Frecuencia**: cron diario 03:00, `max_age_days: 0`. El enrich se aplica en cada pipeline.
+- **Commit**: `354e70f`.
+
