@@ -304,3 +304,9 @@
 - **Impacto**: reduce el cuello de botella de la cuota de Groq (100k tokens/día) — los informes repetidos no consumen.
 - **Commits**: `9c5ef83`, `b709592`. Ecosistema intacto, RAM estable.
 
+## Sprint — Bot /vigilar + cache persistente (12 Ago 2026)
+
+- **Bot /vigilar <país>** (commit `6859b77`): suscripción que consulta cada 24h el país y avisa por Telegram si hay novedades (riesgo/emergencias). Persistente a `.data/watches.json` + `/dejar` para cancelar.
+- **Cache persistente del agente** (`9c5ef83`): `.data/cache.db` en archivo (no se pierde al reiniciar) + cache de respuestas LLM por consulta (6h) — reduce el gasto de cuota Groq.
+- **Estado**: agente 9 tools, bot con menú + /vigilar, dossier HTML renderizado. Cuota Groq pendiente de restablecer (99k/100k) para probar informes LLM en vivo.
+
