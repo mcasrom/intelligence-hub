@@ -315,3 +315,10 @@
 - **+2 informes estáticos** (landing `461903d`): `/informe-francia`, `/informe-colombia` — 5 informes totales (Marruecos, Australia, España-vs-Portugal, Francia, Colombia) + sitemap + IndexNow.
 - **Ko-fi en el agente**: botón en la web del agente + enlace en el menú del bot Telegram (monetización sin fricción).
 
+## Sprint — Fallback y cuota (12 Ago 2026)
+
+- **Modelo dual Groq**: `llama-3.1-8b-instant` (mini) para consultas simples + `llama-3.3-70b` para informes. El mini consume ~8x menos tokens → la cuota diaria (100k) dura ~8x más (de 30 min a horas).
+- **Fallback determinista**: si Groq y Gemini fallan, responde con dossier de datos reales (nunca queda mudo).
+- **Key Gemini descartada**: la `AQ.Ab...` de myip solo sirve para embeddings, no para chat (404 "no longer available"). No es viable como fallback de chat.
+- **Verificado**: consulta simple con mini responde con dossier estructurado + datos reales.
+
