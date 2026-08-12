@@ -270,3 +270,9 @@
 - **UX 2ª iteración** (commit `a843fa4`): tagline de producto, 3 preguntas demo clicables, intelligence trace con herramientas, "Experimental service · Free to use".
 - **Verificado**: "migración Marruecos" → get_migration + get_country con datos reales; 7 tools en health.
 
+## Sprint — Agente: +compare_countries (12 Ago 2026)
+
+- **8 herramientas** (commit `f971d44`): +`compare_countries` (2 países lado a lado: población, renta, PIB, IDH, inflación, desempleo, internet, esperanza, homicidios, corrupción, moneda). Cache 6h.
+- **Verificado**: "Compara España y Portugal" → compare_countries con datos reales y [DATO]/[INFERENCIA].
+- **Consumo**: vi-agent + bot ~75MB cada uno, cpu 0%. Server 2.3G libres.
+
