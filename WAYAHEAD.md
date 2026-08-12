@@ -262,3 +262,11 @@
 - **Frecuencia**: cron diario 03:00, `max_age_days: 0`. El enrich se aplica en cada pipeline.
 - **Commit**: `354e70f`.
 
+## Sprint — Agente: +MigrationFlow +Radar (2ª iteración) (12 Ago 2026)
+
+- **7 herramientas** ahora (commit `1afb3ea`): +`get_migration` (MigrationFlow /api/country/{iso3}: asilo, refugiados, afectados) +`get_emergency` (Radar: emergencias critical/alert sobre NearMe).
+- **Radar reutiliza el API de NearMe** (ya integrado como get_incidents) — get_emergency es el ángulo crítico/alert.
+- **Consumo estable**: vi-agent 74MB + bot 78MB, cpu 0%. Server 2.3G libres.
+- **UX 2ª iteración** (commit `a843fa4`): tagline de producto, 3 preguntas demo clicables, intelligence trace con herramientas, "Experimental service · Free to use".
+- **Verificado**: "migración Marruecos" → get_migration + get_country con datos reales; 7 tools en health.
+
