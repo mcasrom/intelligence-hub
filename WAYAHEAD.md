@@ -238,3 +238,13 @@
 - **Seguro de vida**: backups index.html + sitemap antes de editar. Ecosistema verificado 200.
 - **Próximo**: valorar visitas del 12-Ago (eclipse) + medir uso real del agente.
 
+## Sprint — Bot Telegram del VI Agent + posts eclipse (12 Ago 2026)
+
+- **Bot `@Vi_intelligence_bot`** (PM2 `vi-agent-bot`): responde preguntas del agente por Telegram con long polling.
+- **Mejoras**: descripción/about configurados, contexto conversacional (recuerda el chat, MAX 6), comando `/clear`, `/help`. Soporte de `context` en `/api/ask`.
+- **Bug getUpdates**: `setInterval` lanzaba polls superpuestos → "Conflict". Fix: bucle secuencial `pollLoop` (nunca 2 getUpdates a la vez).
+- **Seguridad**: `.env` (con token) sacado de git. ⚠️ El token quedó en el historial de un commit privado — opcional rotar con @BotFather.
+- **Posts eclipse 12-Ago** (`120826_eclipse_posts.md`): nubosidad actualizada (despejado Oviedo/León/Burgos/Soria/Zaragoza/Teruel/Palma) + post del agente.
+- **Hito**: v1.1.3.
+- **Próximo sprint (pendiente)**: bot más potente — menú con botones (inline keyboards), comandos rápidos, y mejorar UX.
+
