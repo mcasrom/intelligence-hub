@@ -297,3 +297,10 @@
 - **Dossier HTML bonito**: el agente ahora renderiza la respuesta como HTML (tablas markdown, títulos, listas) en vez de texto plano (`renderMarkdown` ligero, sin librería).
 - **Nota cuota Groq**: se agotó hoy (99k/100k tokens) — el agente usa cache y límites; mañana se restablece.
 
+## Sprint — Agente: cache persistente + respuestas (12 Ago 2026)
+
+- **Cache persistente**: la DB de cache pasa de `:memory:` (se perdía al reiniciar) a archivo `.data/cache.db` — las herramientas cacheadas sobreviven reinicios.
+- **Cache de respuestas LLM**: las respuestas finales se cachean por consulta (6h TTL) — la misma pregunta no vuelve a gastar tokens Groq. Verificado: respuesta guardada y persistente.
+- **Impacto**: reduce el cuello de botella de la cuota de Groq (100k tokens/día) — los informes repetidos no consumen.
+- **Commits**: `9c5ef83`, `b709592`. Ecosistema intacto, RAM estable.
+
