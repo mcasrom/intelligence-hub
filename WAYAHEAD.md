@@ -276,3 +276,10 @@
 - **Verificado**: "Compara España y Portugal" → compare_countries con datos reales y [DATO]/[INFERENCIA].
 - **Consumo**: vi-agent + bot ~75MB cada uno, cpu 0%. Server 2.3G libres.
 
+## Sprint — Agente: +build_travel_report (12 Ago 2026)
+
+- **9 herramientas** (commit `f06afa7`): +`build_travel_report` — informe de viaje que cruza Country (indicadores) + NearMe (emergencias alrededor) con tolerancia a fallos. Cache 30 min.
+- **Verificado**: "informe de viaje de Australia" → build_travel_report con datos reales y fuentes [1][2].
+- **Consumo**: server 2.3G libres, estable.
+- **El agente orquesta 6 microservicios**: Country, NearMe, Eclipse, News, MigrationFlow, Radar.
+
