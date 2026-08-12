@@ -291,3 +291,9 @@
 - **Registro**: confirmado OK (9 usuarios reales, DB con 321 escaneos).
 - **Commit**: `45282fb`.
 
+## Sprint — Vitrina del agente: informes estáticos + dossier HTML (12 Ago 2026)
+
+- **3 informes estáticos SEO** (landing, commit `0c46985`): `/informe-marruecos`, `/informe-australia`, `/comparativa-espana-portugal-vivir` — datos verificados reales, vitrina del agente SIN gastar cuota Groq, + sitemap + footer + IndexNow.
+- **Dossier HTML bonito**: el agente ahora renderiza la respuesta como HTML (tablas markdown, títulos, listas) en vez de texto plano (`renderMarkdown` ligero, sin librería).
+- **Nota cuota Groq**: se agotó hoy (99k/100k tokens) — el agente usa cache y límites; mañana se restablece.
+
