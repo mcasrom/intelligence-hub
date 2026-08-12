@@ -310,3 +310,8 @@
 - **Cache persistente del agente** (`9c5ef83`): `.data/cache.db` en archivo (no se pierde al reiniciar) + cache de respuestas LLM por consulta (6h) — reduce el gasto de cuota Groq.
 - **Estado**: agente 9 tools, bot con menú + /vigilar, dossier HTML renderizado. Cuota Groq pendiente de restablecer (99k/100k) para probar informes LLM en vivo.
 
+## Sprint — Informes SEO + Ko-fi (12 Ago 2026)
+
+- **+2 informes estáticos** (landing `461903d`): `/informe-francia`, `/informe-colombia` — 5 informes totales (Marruecos, Australia, España-vs-Portugal, Francia, Colombia) + sitemap + IndexNow.
+- **Ko-fi en el agente**: botón en la web del agente + enlace en el menú del bot Telegram (monetización sin fricción).
+
