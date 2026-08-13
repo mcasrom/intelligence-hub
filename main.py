@@ -16,7 +16,7 @@ from src.sync_detector import detect_sync_groups
 from src.analytics import compute_frequencies, compute_trending
 from src.llm import LLMProvider
 from src.narrative import detect_actor_mentions, aggregate_stance, detect_coordination
-from src.generator import generate_briefing, generate_clusters_page, generate_json_data, generate_health_json
+from src.generator import generate_briefing, generate_clusters_page, generate_json_data, generate_health_json, generate_portada
 from src.deploy import deploy
 
 
@@ -358,6 +358,7 @@ def main(fast=False):
                           site_domain=config.get('deploy', {}).get('site_domain'),
                           is_index=False)
     generate_clusters_page(active_clusters, date_str)
+    generate_portada(db_articles, active_clusters, sync_events, date_str)
     generate_json_data(db_articles, active_clusters, sync_events, frequencies, trends, date_str)
 
     duration = (datetime.now(timezone.utc) - start_time).total_seconds()

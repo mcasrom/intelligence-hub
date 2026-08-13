@@ -233,3 +233,55 @@ def generate_health_json(run_id, start_time, total_articles, total_clusters, tot
     output_path.write_text(json.dumps(health, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f'  [OK] Health JSON: {output_path}')
     return health
+
+
+def generate_portada(articles, clusters, sync_events, date_str=None):
+    """Portada tipo medio de noticias (lector). Reutiliza los clusters existentes."""
+    _ensure_dirs()
+    if not date_str:
+        date_str = datetime.now(timezone.utc).strftime('%y%m%d')
+
+    # Clusters con >=2 artículos, ordenados por tamaño desc
+    ordered = []
+    for cid, cdata in (clusters or {}).items():
+        # Excluir ruido: cluster_id -1 (artículos sin agrupar) no es un tema real
+        if cid is None or str(cid) == '-1' or cid == -1:
+            continue
+        arts = [a for a in cdata.get('articles', [])]
+        if len(arts) >= 2:
+            # Título del tema: usar el artículo más largo/representativo (primer artículo de la lista,
+            # que el pipeline suele ordenar por relevancia). Limpiar para que sea un titular.
+            best = max(arts, key=lambda a: len(a.get('title', '') or ''))
+            label = best.get('title', 'Tema')[:90]
+            ordered.append({
+                'id': cid,
+                'title': label,
+                'size': len(arts),
+                'articles': arts[:4],
+                'sources': sorted(set(a.get('source', '?') for a in arts))[:4],
+            })
+    ordered.sort(key=lambda c: -c['size'])
+
+    # Sincronizadas (misma noticia multi-fuente)
+    synced = []
+    for s in (sync_events or [])[:8]:
+        if isinstance(s, dict):
+            synced.append({'title': s.get('title', ''), 'sources': s.get('sources', [])})
+
+    # Trending palabras (si se pasan, opcional)
+    env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
+    template = env.get_template('portada.html')
+    html = template.render(
+        date=datetime.now(timezone.utc).strftime('%Y-%m-%d'),
+        date_str=date_str,
+        clusters=ordered,
+        synced=synced,
+        total_articles=len(articles),
+        total_clusters=len(ordered),
+        generated_at=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC'),
+    )
+    output_path = OUTPUT_DIR / 'portada.html'
+    output_path.write_text(html, encoding='utf-8')
+    print(f'  [OK] Portada lector generada: {output_path} ({len(ordered)} temas)')
+    return output_path
+

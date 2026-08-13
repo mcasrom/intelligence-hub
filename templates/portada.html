@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intelligence Hub — Portada · {{ date }}</title>
+<meta name="description" content="Titulares del mundo agrupados por tema, con la misma noticia vista en múltiples fuentes. Actualizado cada 6 horas.">
+<style>
+  :root{--bg:#0B0F17;--panel:#121826;--line:#232B3D;--text:#E7EBF3;--dim:#8993A8;--faint:#576076;--amber:#FFB454;--green:#34D399;}
+  html[data-theme="light"]{--bg:#F4F6FB;--panel:#FFFFFF;--line:#D6DDEA;--text:#16202E;--dim:#5B6B84;--faint:#8A97AC;--amber:#D9820A;--green:#0E9F6E;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;transition:background .2s,color .2s;}
+  .wrap{max-width:900px;margin:0 auto;padding:32px 20px 60px;}
+  .top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;border-bottom:1px solid var(--line);padding-bottom:16px;}
+  .top-left{display:flex;align-items:center;gap:14px;}
+  .top-left h1{font-size:24px;font-weight:800;letter-spacing:-0.02em;}
+  .top-left h1 span{color:var(--amber);}
+  .theme-btn{font-family:ui-monospace,monospace;font-size:12px;background:var(--panel);border:1px solid var(--line);color:var(--dim);border-radius:999px;padding:6px 12px;cursor:pointer;transition:all .2s;}
+  .theme-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .meta{font-size:11px;color:var(--faint);font-family:ui-monospace,monospace;margin-bottom:22px;}
+  .stats{display:flex;gap:24px;font-size:12px;color:var(--dim);font-family:ui-monospace,monospace;margin-bottom:22px;flex-wrap:wrap;}
+  .stats b{color:var(--text);font-size:15px;display:block;}
+  .cluster{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:18px;}
+  .cluster h2{font-size:16px;margin-bottom:6px;color:var(--text);}
+  .cluster .src{font-size:11px;color:var(--faint);font-family:ui-monospace,monospace;margin-bottom:12px;}
+  .cluster .src span{color:var(--green);}
+  .art{display:block;text-decoration:none;color:var(--text);padding:7px 0;border-top:1px solid var(--line);font-size:13.5px;}
+  .art:hover{color:var(--amber);}
+  .art .by{display:block;font-size:11px;color:var(--dim);}
+  .art .by em{color:var(--faint);font-style:normal;}
+  .synced{background:var(--panel);border:1px solid var(--green);border-radius:14px;padding:18px 22px;margin-top:26px;}
+  .synced h2{font-size:14px;color:var(--green);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;}
+  .synced .item{font-size:13px;padding:5px 0;border-top:1px solid var(--line);}
+  .synced .item .f{color:var(--faint);font-size:11px;font-family:ui-monospace,monospace;}
+  .vitrine{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin-top:26px;}
+  .vitrine h2{font-size:14px;color:var(--amber);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em;}
+  .vitrine .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+  .vitrine a{display:block;text-decoration:none;font-size:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;color:var(--text);transition:all .2s;}
+  .vitrine a:hover{border-color:var(--amber);color:var(--amber);}
+  .vitrine a small{display:block;font-size:10px;color:var(--faint);margin-top:2px;}
+  .foot{margin-top:30px;font-size:11px;color:var(--faint);text-align:center;font-family:ui-monospace,monospace;}
+  .foot a{color:var(--amber);text-decoration:none;}
+  .kofi{display:inline-block;margin-top:14px;background:#29ABE0;color:#fff;font-weight:700;padding:9px 16px;border-radius:9px;text-decoration:none;font-size:12px;}
+  .kofi:hover{opacity:.9;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="top-left">
+      <h1>🌍 Intelligence <span>Hub</span></h1>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button">☀️ Claro</button>
+  </div>
+  <div class="meta">Portada · {{ date }} · actualizado {{ generated_at }}</div>
+
+  <div class="stats">
+    <div><b>{{ total_articles }}</b> artículos</div>
+    <div><b>{{ total_clusters }}</b> temas</div>
+    <div><b>{{ synced|length }}</b> noticias multi-fuente</div>
+  </div>
+
+  {% for c in clusters[:20] %}
+  <div class="cluster">
+    <h2>{{ c.title }}</h2>
+    <div class="src">Fuentes: <span>{{ c.sources|join(', ') }}</span> · {{ c.size }} artículos</div>
+    {% for a in c.articles[:4] %}
+      <a class="art" href="{{ a.url }}" target="_blank" rel="noopener noreferrer">
+        {{ a.title }}
+        <span class="by"><em>{{ a.source }}</em>{% if a.country %} · {{ a.country }}{% endif %}</span>
+      </a>
+    {% endfor %}
+  </div>
+  {% endfor %}
+
+  {% if synced %}
+  <div class="synced">
+    <h2>🔗 La misma noticia, vista por varias fuentes</h2>
+    {% for s in synced %}
+    <div class="item">{{ s.title }} <span class="f">— {{ s.sources|join(', ') }}</span></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="vitrine">
+    <h2>🧭 Ecosistema Viaje Inteligencia</h2>
+    <div class="grid">
+      <a href="https://viajeinteligencia.com/">🌐 Portada<small>viajeinteligencia.com</small></a>
+      <a href="https://country.viajeinteligencia.com/">📊 Datos de país<small>country</small></a>
+      <a href="https://nearme.viajeinteligencia.com/">📍 Qué pasa cerca<small>nearme</small></a>
+      <a href="https://eclipse.viajeinteligencia.com/">🌑 Eclipse<small>eclipse</small></a>
+      <a href="https://radar.viajeinteligencia.com/">🚨 Radar<small>radar</small></a>
+      <a href="https://migrationflow.viajeinteligencia.com/">🛂 Migración<small>migrationflow</small></a>
+      <a href="https://myip.viajeinteligencia.com/">🛡️ Seguridad IP<small>myip</small></a>
+      <a href="https://news.viajeinteligencia.com/">📰 Noticias<small>news</small></a>
+    </div>
+  </div>
+
+  <div class="foot">
+    Datos en vivo de <a href="https://viajeinteligencia.com/">viajeinteligencia.com</a> · generado cada 6 horas
+    <br>
+    <a class="kofi" href="https://ko-fi.com/m_castillo" target="_blank" rel="noopener noreferrer">☕ Si te sirve, invítame un café</a>
+  </div>
+</div>
+<script>
+  const btn = document.getElementById('themeBtn');
+  const root = document.documentElement;
+  const saved = localStorage.getItem('hub-theme');
+  if (saved === 'light') root.setAttribute('data-theme', 'light');
+  function sync(){ root.getAttribute('data-theme') === 'light'
+    ? (btn.textContent = '🌙 Oscuro', root.setAttribute('data-theme','light'))
+    : (btn.textContent = '☀️ Claro', root.removeAttribute('data-theme')); }
+  sync();
+  btn.onclick = function(){
+    const isLight = root.getAttribute('data-theme') === 'light';
+    if (isLight) root.removeAttribute('data-theme'); else root.setAttribute('data-theme','light');
+    localStorage.setItem('hub-theme', root.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+    sync();
+  };
+</script>
+</body>
+</html>
