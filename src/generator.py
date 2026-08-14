@@ -71,10 +71,30 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
         archive.append({'date': ds, 'exists': f.exists(), 'label': d.strftime('%d/%m/%y')})
 
     # ── KPI Chart Data ──────────────────────────────────────────────
-    chart_data = {'labels': [], 'articles': [], 'sources': [], 'clusters': [], 'editions': []}
     now_local = datetime.now(timezone.utc)
+    # Ancla de contenido: si la edición de hoy aún no tiene noticias (madrugada),
+    # se ancla al día más reciente que sí tiene, para que la portada nunca quede vacía.
+    MIN_ARTICLES = 5
+    today_str = now_local.strftime('%y%m%d')
+    anchor = now_local
+    if date_str == today_str:
+        day_counts = []
+        for i in range(7):
+            d = now_local - timedelta(days=i)
+            c = sum(1 for a in articles if _article_matches_date(a, d.strftime('%y%m%d')))
+            day_counts.append((d, c))
+        if day_counts[0][1] < MIN_ARTICLES:
+            for d, c in day_counts[1:]:
+                if c >= MIN_ARTICLES:
+                    anchor = d
+                    break
+    content_ds = anchor.strftime('%y%m%d')
+    content_note = ""
+    if content_ds != today_str:
+        content_note = f"Mostrando noticias del {anchor.strftime('%d/%m/%Y')} — aún no hay novedades de hoy."
+    chart_data = {'labels': [], 'articles': [], 'sources': [], 'clusters': [], 'editions': []}
     for i in range(6, -1, -1):
-        d = now_local - timedelta(days=i)
+        d = anchor - timedelta(days=i)
         ds = d.strftime('%y%m%d')
         label = d.strftime('%d/%m')
         chart_data['labels'].append(label)
@@ -92,13 +112,13 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
     env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
     template = env.get_template('briefing.html')
 
-    articles = [a for a in articles if _article_matches_date(a, date_str)]
+    articles = [a for a in articles if _article_matches_date(a, content_ds)]
 
     # Filter cluster articles to match the edition date
     filtered_clusters = {}
     for cid, cdata in clusters.items():
         fc = dict(cdata)
-        fc['articles'] = [a for a in cdata.get('articles', []) if _article_matches_date(a, date_str)]
+        fc['articles'] = [a for a in cdata.get('articles', []) if _article_matches_date(a, content_ds)]
         fc['size'] = len(fc['articles'])
         if fc['size'] >= 2:
             filtered_clusters[cid] = fc
@@ -120,7 +140,7 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
     real_counts = {}
     # Only count articles matching the current edition date
     for a in (all_articles_in_window or articles):
-        if _article_matches_date(a, date_str):
+        if _article_matches_date(a, content_ds):
             c = a.get('country', 'internacional')
             real_counts[c] = real_counts.get(c, 0) + 1
 
@@ -162,6 +182,7 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
         chart_data=chart_data,
         total_articles=len(articles),
         total_clusters=len(clusters),
+        content_note=content_note,
         generated_at=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S'),
     )
 

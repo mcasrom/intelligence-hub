@@ -357,6 +357,7 @@
 <div class="top-bar">
     <h1>🌍 Intelligence Hub</h1>
     <div class="tagline">«Quien controla el flujo de los datos, controla la narrativa del territorio»</div>
+    {% if content_note %}<div style="margin-top:10px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:13px;color:var(--dim);">{{ content_note }}</div>{% endif %}
     <div class="meta-bar">
         <span>📅</span> {{ date }}
         <span>⚡</span> {{ generated_at }}
