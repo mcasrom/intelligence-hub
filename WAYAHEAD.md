@@ -329,3 +329,12 @@
 - **Estado final del agente**: 9 tools · dossier con datos verificados · fallback determinista que nunca deja sin respuesta · modelo dual (mini para simples) · cache persistente.
 - **Siguiente**: valorar si el agente genera suficiente tráfico para justificar la opción A (pago) en el futuro.
 
+
+## Fix portada nunca vacía (14/Ago) — commits `f376099` + `cc93780`
+- **Problema**: news mostraba "0 noticias" cada madrugada (00:00–06:00 UTC) porque la
+  portada se anclaba al día calendario "hoy" cuando aún no había artículos fechados ese día.
+- **Fix 1 (ancla)**: si la edición de hoy tiene <5 artículos, se ancla al día más reciente
+  con datos + nota "Mostrando noticias del DD/MM". Commit `f376099`.
+- **Fix 2 (publicación protegida)**: nunca se sobrescribe la portada con contenido vacío;
+  se conserva la última buena si el nuevo HTML no tiene contenido suficiente. Commit `cc93780`.
+- **Resultado**: no existe escenario de 0 noticias (datos de hoy → ancla → última buena).
