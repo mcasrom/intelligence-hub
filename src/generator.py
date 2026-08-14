@@ -191,8 +191,15 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
     print(f'  [OK] Briefing generado: {output_path}')
     if is_index:
         index_path = OUTPUT_DIR / 'index.html'
-        index_path.write_text(html, encoding='utf-8')
-        print(f'  [OK] Index actualizado: {index_path}')
+        # Publicación protegida: NUNCA dejar la portada vacía. Si el contenido
+        # filtrado es insuficiente, se conserva la última portada buena.
+        has_content = len(articles) >= MIN_ARTICLES or bool(
+            clusters and any(len(c.get('articles', [])) >= 2 for c in clusters.values()))
+        if has_content:
+            index_path.write_text(html, encoding='utf-8')
+            print(f'  [OK] Index actualizado: {index_path}')
+        else:
+            print(f'  [WARN] Index NO sobrescrito (contenido insuficiente: {len(articles)} artículos) — se mantiene la última portada.')
     return output_path
 
 
