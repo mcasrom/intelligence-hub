@@ -127,3 +127,8 @@
 - **Rate limiting**: 15 min entre requests al mismo feed. Backoff 2^n + jitter.
 - **Counter**: Microservicio Python en `127.0.0.1:9099`, proxy nginx `/api/count`.
 - **Deploy**: `bash deploy/deploy-to-server.sh` → rsync + nginx + systemd.
+
+## 15/Ago — Portada news muestra HOY (fix definitivo)
+- Problema: portada del día anterior entre 00:00-06:00 (pipeline 6h + ancla >=5).
+- Fix: cron `0 */3 * * *` + MIN_ARTICLES=1 (ancla a hoy con >=1 artículo). Commit `d712911`.
+- Backups crontab: /tmp/ct_bak2.txt.
