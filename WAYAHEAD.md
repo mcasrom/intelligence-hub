@@ -338,3 +338,10 @@
 - **Fix 2 (publicación protegida)**: nunca se sobrescribe la portada con contenido vacío;
   se conserva la última buena si el nuevo HTML no tiene contenido suficiente. Commit `cc93780`.
 - **Resultado**: no existe escenario de 0 noticias (datos de hoy → ancla → última buena).
+
+## Fix portada "siempre del día anterior" (15/Ago)
+- **Causa**: pipeline cada 6h (0,6,12,18) + ancla a "hoy" solo con >=5 artículos → entre
+  00:00 y 06:00 la portada mostraba el día anterior.
+- **Fix**: cron a **cada 3h** (`0 */3 * * *`) + `MIN_ARTICLES=1` (la portada cambia a hoy
+  en cuanto hay >=1 artículo del día). La portada muestra HOY desde las 00:00/03:00.
+- Backup crontab: /tmp/ct_bak2.txt.

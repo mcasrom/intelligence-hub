@@ -74,7 +74,7 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
     now_local = datetime.now(timezone.utc)
     # Ancla de contenido: si la edición de hoy aún no tiene noticias (madrugada),
     # se ancla al día más reciente que sí tiene, para que la portada nunca quede vacía.
-    MIN_ARTICLES = 5
+    MIN_ARTICLES = 1
     today_str = now_local.strftime('%y%m%d')
     anchor = now_local
     if date_str == today_str:
