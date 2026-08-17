@@ -10,6 +10,7 @@ ACTOR_GROUPS = {
     "Iran": ["Iran", "Tehran", "Teheran", "Iranian", "Jomeini", "Khamenei"],
     "Israel": ["Israel", "Israeli", "Tel Aviv", "Netanyahu", "Israel's"],
     "Ukraine": ["Ukraine", "Ucrania", "Kyiv", "Kiev", "Zelensky", "Zelenski", "Ukrainian"],
+    "España": ["España", "Spain", "Madrid", "Barcelona", "Sánchez", "Moncloa", "gobierno español"],
 }
 
 STANCE_CACHE = {}

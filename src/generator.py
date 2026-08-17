@@ -220,12 +220,35 @@ def generate_clusters_page(clusters, date_str=None):
     print(f'  [OK] Clusters generados: {output_path}')
 
 
+def _featured_articles(articles, limit=100, es_target=35, max_per_source=12):
+    def sort_key(a):
+        return a.get("published") or ""
+
+    def cap_source(lst, cap, total_cap):
+        seen, out = {}, []
+        for a in lst:
+            if len(out) >= total_cap:
+                break
+            src = a.get("source", "?")
+            if seen.get(src, 0) >= cap:
+                continue
+            seen[src] = seen.get(src, 0) + 1
+            out.append(a)
+        return out
+
+    es = sorted((a for a in articles if a.get("lang") == "es"), key=sort_key, reverse=True)
+    otros = sorted((a for a in articles if a.get("lang") != "es"), key=sort_key, reverse=True)
+    es_picked = cap_source(es, max_per_source, es_target)
+    otros_picked = cap_source(otros, max_per_source, limit - len(es_picked))
+    return (es_picked + otros_picked)[:limit]
+
+
 def generate_json_data(articles, clusters, sync_events, frequencies, trends, date_str=None):
     _ensure_dirs()
     data = {
         'generated_at': datetime.now(timezone.utc).isoformat(),
         'total_articles': len(articles),
-        'articles': articles[:100],
+        'articles': _featured_articles(articles),
         'clusters': list(clusters.values()) if isinstance(clusters, dict) else clusters,
         'sync_events': sync_events[:20],
         'word_frequencies': frequencies,
