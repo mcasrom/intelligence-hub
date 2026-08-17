@@ -561,11 +561,11 @@
         <div class="stance-card">
             <h3>{{ actor }}</h3>
             {% for src_name, counts in sources.items() %}
+            {% set total = counts.pro + counts.contra + counts.neutral %}
             <div class="src-row">
                 <span class="name">{{ src_name }}</span>
-                <span class="counts">&#128077; {{ counts.pro }} &#128078; {{ counts.contra }} &#10134; {{ counts.neutral }}</span>
+                <span class="counts"><strong style="color:var(--text);font-size:1.1em;">{{ total }}</strong> <span style="font-size:0.75em;color:var(--dim);">noticias</span> <span style="opacity:.7;">· 👍{{ counts.pro }} 👎{{ counts.contra }} ⚪{{ counts.neutral }}</span></span>
             </div>
-            {% set total = counts.pro + counts.contra + counts.neutral %}
             {% if total > 0 %}
             <div class="bar">
                 <div class="pro" style="width:{{ (counts.pro / total * 100)|int }}%"></div>
