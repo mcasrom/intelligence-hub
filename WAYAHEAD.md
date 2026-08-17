@@ -353,3 +353,13 @@
   por bloque (8 actores).
 - Fix 2: src/generator.py → _featured_articles: 35 ES + 65 resto, máx 12/fuente.
 - Commit 79f3987. Verificado: 35 ES servidos, España en cobertura.
+
+## Hito: doble despliegue y criterio de repos (17/Ago)
+- El concepto "Intelligence Hub" corre en 2 despliegues independientes:
+  - Raspberry Pi (DietPi): repo mcasrom/daily_readings -> GitHub Pages
+    (mcasrom.github.io/daily_readings), auto-sync cada 6h.
+  - Hetzner: pipeline intelligence-hub -> rsync /var/www/daily_readings -> news.viajeinteligencia.com.
+- CRITERIO: NO forzar push entre ambos. Son repos/historias sin base común (merge-base vacio).
+- El remote del repo local /var/www/daily_readings (Hetzner) apuntaba por error al repo
+  de la Pi (SSH sin key) -> eliminado. Ese repo local queda SOLO como versionado del output.
+- Fuente de codigo real de news: intelligence-hub (este repo). Deploy = rsync, no git.
