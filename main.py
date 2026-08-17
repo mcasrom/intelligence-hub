@@ -135,7 +135,8 @@ def main(fast=False):
     for s in feed_status:
         if not s.get("ok") and s.get("error"):
             errors.append(f'{s["name"]}: {s["error"]}')
-    failing_feeds = get_feeds_in_failure(min_consecutive=2)
+    active_feeds = {src.get('name') for src in config['sources']}
+    failing_feeds = [f for f in get_feeds_in_failure(min_consecutive=2) if f['feed_name'] in active_feeds]
     for f in failing_feeds:
         msg = f'⚠️ Feed caído: {f["feed_name"]} ({f["consecutive_failures"]}x)'
         notify_telegram(msg)
