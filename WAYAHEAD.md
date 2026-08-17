@@ -345,3 +345,11 @@
 - **Fix**: cron a **cada 3h** (`0 */3 * * *`) + `MIN_ARTICLES=1` (la portada cambia a hoy
   en cuanto hay >=1 artículo del día). La portada muestra HOY desde las 00:00/03:00.
 - Backup crontab: /tmp/ct_bak2.txt.
+
+## Fix: España 0 noticias (17/Ago)
+- Causa raíz: data.json guardaba articles[:100] por recencia pura → fuentes latinas
+  nocturnas acaparaban y las españolas (published más antiguo) quedaban a 0.
+- Fix 1: src/narrative.py → "España" añadido a ACTOR_GROUPS → ya sale en Cobertura
+  por bloque (8 actores).
+- Fix 2: src/generator.py → _featured_articles: 35 ES + 65 resto, máx 12/fuente.
+- Commit 79f3987. Verificado: 35 ES servidos, España en cobertura.
