@@ -406,4 +406,15 @@ def main(fast=False):
 
 if __name__ == '__main__':
     fast = '--fast' in sys.argv
-    main(fast=fast)
+    try:
+        main(fast=fast)
+    except SystemExit:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        try:
+            notify_telegram(f'❌ daily_news CRASH: {e}')
+        except Exception:
+            pass
+        sys.exit(1)
