@@ -475,6 +475,22 @@
     </div>
 </div>
 
+{% set esp_data = all_sources.get('Espana') %}
+{% if esp_data and esp_data.sources %}
+<div class="section" id="espana">
+    <div class="section-title">🇪🇸 España · Medios españoles <span class="badge">{{ esp_data.total }}</span></div>
+    {% for src_name, src_data in esp_data.sources.items() %}
+        {% if src_data.count > 0 %}
+        <div class="country-block">
+            <div class="country-header">{{ src_name }} <span style="color:var(--faint);font-size:0.65em;font-weight:400;">({{ src_data.count }})</span></div>
+            {% for a in src_data.articles[:5] %}
+            <div class="article"><a href="{{ a.url }}" target="_blank">{{ a.title }}</a></div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
 <div class="section" id="archivo">
     <div class="section-title">🗂 Archivo de Noticias <span class="badge">7 días</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
