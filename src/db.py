@@ -388,22 +388,23 @@ def clean_llm_cache(max_age_days=7):
     return deleted
 
 
-def rotate_articles(days=7):
+def rotate_articles(days=7, emb_days=30, hard_days=400):
+    """Politica de retencion (23/Ago): metadatos de articulos se conservan para
+    historico de tendencias (~140 MB/anio); solo se purgan embeddings >emb_days
+    (91% del peso) y filas >hard_days como tope de seguridad."""
     import time as _time
     last_error = None
     for attempt in range(3):
         conn = get_conn()
         try:
-            cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
-            cursor = conn.execute('DELETE FROM articles WHERE fetched < ?', (cutoff,))
+            emb_cut = (datetime.utcnow() - timedelta(days=emb_days)).isoformat()
+            conn.execute('UPDATE articles SET embedding=NULL WHERE fetched < ? AND embedding IS NOT NULL', (emb_cut,))
+            hard_cut = (datetime.utcnow() - timedelta(days=hard_days)).isoformat()
+            cursor = conn.execute('DELETE FROM articles WHERE fetched < ?', (hard_cut,))
             deleted_articles = cursor.rowcount
-            cursor2 = conn.execute('DELETE FROM word_frequencies WHERE date < ?', (
-                (datetime.utcnow() - timedelta(days=days)).date().isoformat(),))
-            deleted_words = cursor2.rowcount
-            cursor3 = conn.execute('DELETE FROM sync_events WHERE last_seen < ?', (cutoff,))
-            deleted_syncs = cursor3.rowcount
-            conn.execute("DELETE FROM llm_cache WHERE created_at < datetime('now', ? || ' days')",
-                         (f'-{days}',))
+            deleted_words = 0   # word_frequencies: historico permanente (peso minimo)
+            deleted_syncs = 0   # sync_events: historico permanente (peso minimo)
+            conn.execute("DELETE FROM llm_cache WHERE created_at < datetime('now', '-30 days')")
             conn.commit()
             conn.close()
             return deleted_articles, deleted_words, deleted_syncs
