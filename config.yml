@@ -137,3 +137,20 @@ sources:
     name: The Guardian
     type: general
     url: https://www.theguardian.com/world/rss
+  otros:
+  - lang: en
+    name: Al Jazeera
+    type: general
+    url: https://www.aljazeera.com/xml/rss/all.xml
+  - lang: en
+    name: Anadolu Agency
+    type: general
+    url: https://www.aa.com.tr/en/rss/default?cat=guncel
+  - lang: en
+    name: Al-Monitor
+    type: middle-east
+    url: https://www.al-monitor.com/feed
+  - lang: en
+    name: The National
+    type: general
+    url: https://www.thenationalnews.com/arc/outboundfeeds/rss/?outputType=xml
