@@ -288,7 +288,7 @@ def main(fast=False):
     print('FASE 6: Enriquecimiento LLM')
     print('=' * 60)
     llm_cfg_tmp = config.get('llm', {}).get('production' if mode == 'production' else 'test', {})
-    llm = LLMProvider(mode, groq_model=llm_cfg_tmp.get('groq_model', 'llama-3.3-70b-versatile'))
+    llm = LLMProvider(mode, groq_model=llm_cfg_tmp.get('groq_model', 'openai/gpt-oss-120b'))
     from src.clusterer import _cluster_keywords
     enriched_count = 0
     top_clusters = sorted(active_clusters.items(), key=lambda kv: -kv[1]['size'])[:15]

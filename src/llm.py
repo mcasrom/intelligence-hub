@@ -138,12 +138,13 @@ Responde SOLO: coordinado, independiente o mixto.'''
                 headers={
                     'Authorization': f'Bearer {self.groq_key}',
                     'Content-Type': 'application/json',
+                    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120',
                 },
                 json={
                     'model': self.groq_model,
                     'messages': [{'role': 'user', 'content': prompt}],
                     'temperature': 0.1,
-                    'max_tokens': 200,
+                    'max_tokens': 400,
                 },
                 timeout=30,
             )
