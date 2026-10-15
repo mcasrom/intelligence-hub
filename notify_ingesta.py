@@ -24,7 +24,7 @@ STATE = HUB / ".notify_ingesta_last"   # evita avisar 2x del mismo run_id
 # considera "human" SOLO al trafico humano real (no bots/dev/internal).
 ACCESS_LINE = re.compile(
     r"^(?P<ip>\S+) - - \[(?P<ts>[^\]]+)\] \"(?P<method>\S+) (?P<path>[^\" ]*)[^\"]*\" "
-    r"(?P<status>\d+) (?P<size>\d+) \"(?P<ref>[^\"]*)\" \"(?P<ua>[^\"]*)\"+\s+host=(?P<host>\S+)$")
+    r"(?P<status>\d+) (?P<size>\d+) \"(?P<ref>[^\"]*)\" \"(?P<ua>[^\"]*)\"+\s+(?:\"[^\"]*\"\s+)?host=(?P<host>\S+)$")
 DAYM = re.compile(r"(\d{1,2})/([A-Za-z]{3})/(\d{4})")
 _OWN_UA = re.compile(r"ecosystem-healthcheck|uptime.?kuma|UptimeRobot|node-fetch|axios|requests/|Go-http-client|curl/|Wget|python-requests", re.I)
 _BOT = re.compile(r"bot\b|crawl|spider|scrape|slurp|monitor|pingdom|Googlebot|bingbot|Yandex|Baidu|DuckDuckBot|facebookexternalhit|Twitterbot|Pinterest|LinkedInBot|Discordbot|TelegramBot|Semrush|ahrefs|MJ12|DotBot|GPTBot|ClaudeBot|Amazonbot|Bytespider|CCBot|Applebot|http\.client|Guzzle|okhttp|Java/|Python|httpx|aiohttp|Scrapy|Censys|Shodan|Netcraft", re.I)
