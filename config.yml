@@ -86,10 +86,6 @@ sources:
     type: general
     url: https://rss.nytimes.com/services/xml/rss/nyt/World.xml
   - lang: en
-    name: Washington Post
-    type: general
-    url: https://feeds.washingtonpost.com/rss/world
-  - lang: en
     name: WSJ
     type: financial
     url: https://feeds.content.dowjones.io/public/rss/RSSWorldNews

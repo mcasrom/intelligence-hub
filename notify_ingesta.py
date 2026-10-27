@@ -141,6 +141,15 @@ def local_ts(iso_ts):
     except Exception:
         return iso_ts or "?"
 
+def severity(status: str, feeds_ok: int, feeds_fail: int) -> tuple[str, str]:
+    """Rojo solo si el pipeline falla o no queda ningún feed; amarillo si es parcial."""
+    if status != "completed" or (feeds_fail and feeds_ok == 0):
+        return "\U0001F534", "FALLO"
+    if feeds_fail:
+        return "\U0001F7E1", "AVISOS"
+    return "\U0001F7E2", "CORRECTO"
+
+
 def main():
     env = load_env()
     token = env.get("TELEGRAM_BOT_TOKEN")
@@ -172,13 +181,9 @@ def main():
     errors = e.get("errors")
     ts = local_ts(e.get("timestamp", ""))
 
-    # color semantico
-    if status != "completed" or feeds_fail:
-        emoji, tag, color = "\U0001F534", "FALLO", None     # 🔴
-    elif feeds_fail:
-        emoji, tag, color = "\U0001F7E1", "AVISOS", None   # 🟡
-    else:
-        emoji, tag, color = "\U0001F7E2", "CORRECTO", None # 🟢
+    # color semantico: rojo = caída total; amarillo = uno o varios feeds caídos
+    emoji, tag = severity(status, feeds_ok, feeds_fail)
+    color = None
 
     lines = [
         f"{emoji} <b>Ingesta news · {tag}</b>",
