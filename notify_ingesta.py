@@ -125,7 +125,11 @@ def last_entry():
     except (OSError, ValueError):
         return None
     entries = data if isinstance(data, list) else [data]
-    return entries[0] if entries else None
+    if not entries:
+        return None
+    # cron_log se escribe en orden antiguo -> nuevo: usar el timestamp más reciente,
+    # no la primera entrada.
+    return max(entries, key=lambda e: str(e.get("timestamp") or ""))
 
 def local_ts(iso_ts):
     """Convierte ISO UTC a hora local España (UTC+2 en verano) legible."""
