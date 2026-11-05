@@ -94,7 +94,12 @@ def main(fast=False):
     print('')
     print('[*] Rotacion: eliminando articulos > 7 dias...')
     try:
-        del_arts, del_words, del_syncs = rotate_articles(days=config.get('clustering', {}).get('window_days', 7))
+        retention = config.get('retention', {})
+        del_arts, del_words, del_syncs = rotate_articles(
+            days=config.get('clustering', {}).get('window_days', 7),
+            emb_days=retention.get('embedding_days', 30),
+            hard_days=retention.get('hard_days', 365),
+        )
         print('    Eliminados: ' + str(del_arts) + ' articulos, ' + str(del_words) + ' palabras, ' + str(del_syncs) + ' sync_events')
     except Exception as e:
         print('    [WARN] Rotation fallo: ' + str(e))

@@ -132,3 +132,9 @@
 - Problema: portada del día anterior entre 00:00-06:00 (pipeline 6h + ancla >=5).
 - Fix: cron `0 */3 * * *` + MIN_ARTICLES=1 (ancla a hoy con >=1 artículo). Commit `d712911`.
 - Backups crontab: /tmp/ct_bak2.txt.
+
+## 5-nov-2026 — fuentes y retención
+
+- Fuentes España: **8** (El Mundo, El País, La Vanguardia, El Diario Cantabria, Europa Press, ABC, elDiario.es, 20minutos).
+- Retención: **365 días** de metadatos de artículos, **30 días** de embeddings, **30 días** de `llm_cache`. `word_frequencies` y `sync_events` se conservan.
+- Motivo: evitar crecimiento sin control; las piezas >365 días se eliminan en `rotate_articles`.

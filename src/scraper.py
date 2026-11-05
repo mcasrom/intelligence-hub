@@ -11,6 +11,8 @@ from src.db import update_feed_health
 COUNTRIES = {
     "elpais.com": "espana", "elmundo.es": "espana",
     "lavanguardia.com": "espana", "eldiariocantabria.publico.es": "espana",
+    "europapress.es": "espana", "abc.es": "espana",
+    "eldiario.es": "espana", "20minutos.es": "espana",
     "washingtonpost.com": "estados_unidos", "wsj.com": "estados_unidos",
     "cnn.com": "estados_unidos", "nytimes.com": "estados_unidos",
     "lemonde.fr": "francia", "lefigaro.fr": "francia",
