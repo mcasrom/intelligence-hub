@@ -16,3 +16,5 @@ run_pipeline.sh
 check_dates.py
 healthcheck.log
 .notify_ingesta_last
+
+memory.log
