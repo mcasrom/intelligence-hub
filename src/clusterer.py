@@ -8,11 +8,17 @@ def compute_clusters(articles, embeddings, min_cluster_size=2, min_samples=1):
     if not embeddings or len(embeddings) < 2:
         return [{"cluster_id": -1} for _ in articles]
 
-    matrix = np.array(embeddings)
+    matrix = np.asarray(embeddings, dtype=np.float32)
+    # Los embeddings ya vienen normalizados. Con vectores unitarios,
+    # la distancia euclídea ordena igual que la distancia coseno, pero
+    # HDBSCAN puede usar su algoritmo eficiente en memoria en vez de
+    # materializar la matriz NxN de similitudes (causa del OOM).
+    norms = np.linalg.norm(matrix, axis=1, keepdims=True)
+    matrix = matrix / np.maximum(norms, 1e-12)
     clusterer = HDBSCAN(
         min_cluster_size=min_cluster_size,
         min_samples=min_samples,
-        metric="cosine",
+        metric="euclidean",
         cluster_selection_method="eom",
         copy=True,
     )
@@ -153,26 +159,35 @@ def merge_clusters_by_sync(clustered, sync_events):
     return clustered, merged_clusters
 
 
-def find_similar_articles(articles, embeddings, threshold=0.75):
+def find_similar_articles(articles, embeddings, threshold=0.75, block_size=512):
+    """Agrupa artículos similares sin materializar la matriz NxN.
+
+    En ventanas de ~9.000 artículos, cosine_similarity(matrix) ocupa cientos
+    de MB y ha provocado OOM en un servidor de 4 GB. Se calcula por bloques:
+    cada bloque solo contiene block_size filas contra toda la matriz.
+    """
     if not embeddings or len(embeddings) < 2:
         return []
 
-    matrix = np.array(embeddings)
-    sim_matrix = cosine_similarity(matrix)
-
+    matrix = np.asarray(embeddings)
+    n = len(articles)
     groups = []
     assigned = set()
 
-    for i in range(len(articles)):
-        if i in assigned:
-            continue
-        group = [i]
-        for j in range(i + 1, len(articles)):
-            if j not in assigned and sim_matrix[i][j] >= threshold:
-                group.append(j)
-                assigned.add(j)
-        if len(group) > 1:
-            assigned.add(i)
-            groups.append(group)
+    for start in range(0, n, block_size):
+        end = min(start + block_size, n)
+        sim_block = cosine_similarity(matrix[start:end], matrix)
+        for local_i, i in enumerate(range(start, end)):
+            if i in assigned:
+                continue
+            group = [i]
+            row = sim_block[local_i]
+            for j in range(i + 1, n):
+                if j not in assigned and row[j] >= threshold:
+                    group.append(j)
+                    assigned.add(j)
+            if len(group) > 1:
+                assigned.add(i)
+                groups.append(group)
 
     return groups
