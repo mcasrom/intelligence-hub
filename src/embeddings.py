@@ -16,6 +16,11 @@ class EmbeddingsProvider:
     def _load_model(self):
         if EmbeddingsProvider._model is None:
             from sentence_transformers import SentenceTransformer
+            try:
+                import torch
+                torch.set_num_threads(1)
+            except ImportError:
+                pass
             EmbeddingsProvider._model = SentenceTransformer(MODEL_NAME)
             print(f"  [CACHE] Modelo cargado: {MODEL_NAME}")
 
@@ -26,7 +31,7 @@ class EmbeddingsProvider:
             texts,
             normalize_embeddings=True,
             show_progress_bar=False,
-            batch_size=64,
+            batch_size=16,
         )
         return vecs.tolist()
 
