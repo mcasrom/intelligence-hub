@@ -160,6 +160,7 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
                 'count': count,
             }
 
+    canonical_url = f'https://{site_domain or "viajeinteligencia.com"}/' if is_index or date_str == datetime.now(timezone.utc).strftime('%y%m%d') else f'https://{site_domain or "viajeinteligencia.com"}/{date_str}_day_briefing.html'
     html = template.render(
         date=datetime.now(timezone.utc).strftime('%Y-%m-%d'),
         date_str=date_str,
@@ -178,6 +179,7 @@ def generate_briefing(articles, clusters, sync_events, frequencies, trends, date
         stance_data=stance_data or {},
         coordination_flags=coordination_flags or [],
         site_domain=site_domain or 'viajeinteligencia.com',
+        canonical_url=canonical_url,
         archive=archive,
         chart_data=chart_data,
         total_articles=len(articles),
@@ -209,6 +211,7 @@ def generate_clusters_page(clusters, date_str=None):
         date_str = datetime.now(timezone.utc).strftime('%y%m%d')
     env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
     template = env.get_template('clusters.html')
+    canonical_url = f'https://{site_domain or "viajeinteligencia.com"}/' if is_index or date_str == datetime.now(timezone.utc).strftime('%y%m%d') else f'https://{site_domain or "viajeinteligencia.com"}/{date_str}_day_briefing.html'
     html = template.render(
         date=datetime.now(timezone.utc).strftime('%Y-%m-%d'),
         date_str=date_str,
@@ -322,6 +325,7 @@ def generate_portada(articles, clusters, sync_events, date_str=None):
     # Trending palabras (si se pasan, opcional)
     env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
     template = env.get_template('portada.html')
+    canonical_url = f'https://{site_domain or "viajeinteligencia.com"}/' if is_index or date_str == datetime.now(timezone.utc).strftime('%y%m%d') else f'https://{site_domain or "viajeinteligencia.com"}/{date_str}_day_briefing.html'
     html = template.render(
         date=datetime.now(timezone.utc).strftime('%Y-%m-%d'),
         date_str=date_str,
