@@ -1,6 +1,9 @@
 import sqlite3
 import json
 import difflib
+import re
+import unicodedata
+from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -119,37 +122,79 @@ def _title_ratio(a, b):
     return difflib.SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
 
+def _norm_tokens(text):
+    text = unicodedata.normalize("NFKD", (text or "").lower())
+    text = "".join(c for c in text if not unicodedata.combining(c))
+    return [t for t in re.findall(r"[a-z0-9]+", text) if len(t) > 2]
+
+
 def save_articles(articles, dedup_threshold=0.85, dedup_days=2):
+    """Inserta artículos evitando duplicados exactos y casi-duplicados.
+
+    Antes se comparaba cada título contra todos los recientes: O(N×M) y más de
+    20 minutos con 9k títulos. Ahora se bloquea por URL, título normalizado y
+    tokens compartidos; solo se aplica SequenceMatcher a los candidatos.
+    """
     conn = get_conn()
     inserted = 0
     recent = []
+    recent_urls = set()
+    recent_norm = set()
+    index = defaultdict(set)
     try:
         cutoff = (datetime.utcnow() - timedelta(days=dedup_days)).isoformat()
-        recent = [r["title"] for r in conn.execute(
-            "SELECT title FROM articles WHERE fetched >= ?", (cutoff,)
-        ).fetchall()]
+        for r in conn.execute(
+            "SELECT title, url FROM articles WHERE fetched >= ?", (cutoff,)
+        ).fetchall():
+            title = r["title"] or ""
+            recent.append(title)
+            recent_urls.add(r["url"])
+            norm = " ".join(_norm_tokens(title))
+            if norm:
+                recent_norm.add(norm)
+            for token in set(_norm_tokens(title)):
+                index[token].add(title)
     except Exception:
         pass
 
     for a in articles:
         try:
             title = a["title"]
-            skip = False
-            for rt in recent:
-                if _title_ratio(title, rt) >= dedup_threshold:
-                    skip = True
-                    break
+            url = a.get("url") or ""
+            if url and url in recent_urls:
+                continue
+            tokens = list(dict.fromkeys(_norm_tokens(title)))
+            norm = " ".join(tokens)
+            if norm and norm in recent_norm:
+                continue
+
+            candidates = set()
+            for token in tokens:
+                candidates.update(index.get(token, ()))
+            if len(candidates) > 400:
+                counts = Counter()
+                for token in tokens:
+                    for rt in index.get(token, ()):
+                        counts[rt] += 1
+                candidates = {rt for rt, _ in counts.most_common(400)}
+
+            skip = any(_title_ratio(title, rt) >= dedup_threshold for rt in candidates)
             if skip:
                 continue
             conn.execute(
                 """INSERT OR IGNORE INTO articles
                    (title, url, source, country, lang, published, summary)
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                (title, a["url"], a["source"], a["country"], a["lang"], a.get("published"), a.get("summary"))
+                (title, url, a["source"], a["country"], a["lang"], a.get("published"), a.get("summary"))
             )
             if conn.total_changes > 0:
                 inserted += 1
                 recent.append(title)
+                recent_urls.add(url)
+                if norm:
+                    recent_norm.add(norm)
+                for token in tokens:
+                    index[token].add(title)
         except Exception:
             pass
     conn.commit()
